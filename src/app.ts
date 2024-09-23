@@ -15,21 +15,30 @@ app.use(json());
 app.use(urlencoded({ extended: true }));
 
 app.post("/speakers/insert", async (req: Request, res: Response) => {
-  const { sacramentMeetingDate, firstSpeaker, secondSpeaker, thirdSpeaker } =
-    req.body;
+  const speakers = req.body;
+  //   console.log("data", data);
 
   try {
-    const sql = `
-      INSERT INTO speakers (sacrament_meeting_date, first_speaker, second_speaker, third_speaker)
-      VALUES (?, ?, ?, ?)
-    `;
+    await knex.transaction(async (trx) => {
+      for (const speaker of speakers) {
+        await trx("speakers").insert({
+          sacrament_meeting_date: speaker.sacrament_meeting_date,
+          member_id: speaker.member_id,
+          speaker_position: speaker.speaker_position,
+        });
+      }
+    });
+    // const sql = `
+    //   INSERT INTO speakers (sacrament_meeting_date, first_speaker, second_speaker, third_speaker)
+    //   VALUES (?, ?, ?, ?)
+    // `;
 
-    await knex.raw(sql, [
-      sacramentMeetingDate,
-      firstSpeaker,
-      secondSpeaker,
-      thirdSpeaker,
-    ]);
+    // await knex.raw(sql, [
+    //   sacramentMeetingDate,
+    //   firstSpeaker,
+    //   secondSpeaker,
+    //   thirdSpeaker,
+    // ]);
 
     res.status(201).json({ message: "Registro inserido com sucesso." });
   } catch (error) {
