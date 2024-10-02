@@ -1,5 +1,6 @@
 import knex from "knex";
 import config from "./knexfile.ts";
+import "dotenv/config";
 
 // Definir o ambiente atual, sendo 'development' por padrão
 const environment = process.env.NODE_ENV || "development";
