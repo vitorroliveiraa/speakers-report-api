@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "start": "node dist/server.js",
-    "build": "tsup src",
+    "build": "npm run clean && tsup src && npm run migrate:latest && npm run knex:seed",
+    "clean": "rm -rf dist",
     "knex": "tsx -r sucrase/register ./node_modules/knex/bin/cli.js",
     "migrate:make": "npm run knex -- migrate:make $1 --knexfile ./src/database/knexfile.ts",
     "migrate:latest": "npm run knex -- migrate:latest --knexfile ./src/database/knexfile.ts",

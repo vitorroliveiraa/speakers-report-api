@@ -34,6 +34,20 @@ const knexConfig: KnexConfig = {
       timestampFilenamePrefix: true,
     },
   },
+  production: {
+    client: "pg",
+    connection: process.env.CONNECTION_STRING,
+    migrations: {
+      tableName: "knex_migrations",
+      extension: "ts",
+      directory: path.join(process.cwd(), "migrations"),
+    },
+    seeds: {
+      directory: path.join(process.cwd(), "seeds"),
+      extension: "ts",
+      timestampFilenamePrefix: true,
+    },
+  },
 };
 
 export default knexConfig;
