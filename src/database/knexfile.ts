@@ -36,7 +36,12 @@ const knexConfig: KnexConfig = {
   },
   production: {
     client: "pg",
-    connection: process.env.CONNECTION_STRING,
+    connection: {
+      connectionString: process.env.CONNECTION_STRING,
+      ssl: {
+        rejectUnauthorized: false,
+      },
+    },
     migrations: {
       tableName: "knex_migrations",
       extension: "ts",
