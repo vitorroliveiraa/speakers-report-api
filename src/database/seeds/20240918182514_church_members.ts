@@ -1,8 +1,6 @@
 import { Knex } from "knex";
 
 export async function seed(knex: Knex): Promise<void> {
-  await knex("church_members").del();
-
   // Inserts seed entries
   await knex("church_members").insert([
     { name: "Aguiar, Stael de Melo" },
