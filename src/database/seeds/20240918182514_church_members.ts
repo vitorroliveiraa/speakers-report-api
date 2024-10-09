@@ -1,8 +1,7 @@
 import { Knex } from "knex";
 
 export async function seed(knex: Knex): Promise<void> {
-  // Inserts seed entries
-  await knex("church_members").insert([
+  const members = [
     { name: "Aguiar, Stael de Melo" },
     { name: "Almeida, Franciely Martins de" },
     { name: "Alves, Fernando" },
@@ -232,5 +231,18 @@ export async function seed(knex: Knex): Promise<void> {
     { name: "Vieira, Noemi Barbosa" },
     { name: "Vieira, Silvia" },
     { name: "Vieira Koszenieski, Davi" },
-  ]);
+  ];
+
+  for (const member of members) {
+    const exists = await knex.raw(
+      "SELECT 1 FROM church_members name = ? LIMIT 1",
+      [member.name]
+    );
+
+    if (exists.rowCount === 0) {
+      await knex.raw("INSERT INTO church_members (name) VALUES (?)", [
+        member.name,
+      ]);
+    }
+  }
 }
