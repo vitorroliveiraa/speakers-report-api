@@ -8,44 +8,64 @@ import path from "path";
 
 const dotenvFilepath = path.resolve(process.cwd(), ".env");
 dotenv.config({ path: dotenvFilepath });
-//Tredsdfn8- senha ubuntu
+
 const app = express();
 app.use(cors());
 app.use(json());
 app.use(urlencoded({ extended: true }));
 
-app.post("/speakers/insert", async (req: Request, res: Response) => {
-  const speakers = req.body;
-  //   console.log("data", data);
+type Speakers = {
+  member_id: number;
+  speaker_position: number;
+};
+interface ISpeakersReq {
+  sacrament_meeting_date: Date;
+  speakers: Speakers[];
+}
 
-  try {
-    await knex.transaction(async (trx) => {
-      for (const speaker of speakers) {
-        await trx("speakers").insert({
-          sacrament_meeting_date: speaker.sacrament_meeting_date,
-          member_id: speaker.member_id,
-          speaker_position: speaker.speaker_position,
-        });
+app.post(
+  "/speakers/insert",
+  async (req: Request<{}, {}, ISpeakersReq>, res: Response) => {
+    const { sacrament_meeting_date, speakers } = req.body;
+
+    const sacramentMeetingDate = sacrament_meeting_date;
+
+    try {
+      const exists = await knex.raw(
+        "SELECT 1 FROM speakers WHERE sacrament_meeting_date = ? LIMIT 1",
+        [sacramentMeetingDate]
+      );
+
+      if (exists.rowCount > 0) {
+        return res
+          .status(409)
+          .json({ error: "Já existe um registro nessa data." });
       }
-    });
-    // const sql = `
-    //   INSERT INTO speakers (sacrament_meeting_date, first_speaker, second_speaker, third_speaker)
-    //   VALUES (?, ?, ?, ?)
-    // `;
 
-    // await knex.raw(sql, [
-    //   sacramentMeetingDate,
-    //   firstSpeaker,
-    //   secondSpeaker,
-    //   thirdSpeaker,
-    // ]);
+      await knex.transaction(async (trx) => {
+        const insertValues = speakers
+          .map((speaker) => {
+            return `('${sacrament_meeting_date}', '${speaker.member_id}', '${speaker.speaker_position}')`;
+          })
+          .join(", ");
 
-    res.status(201).json({ message: "Registro inserido com sucesso." });
-  } catch (error) {
-    console.log("Erro ao inserir registro:", error);
-    res.status(500).json({ error: "Erro ao inserir registro" });
+        const insertQuery = `
+        INSERT INTO speakers (sacrament_meeting_date, member_id, speaker_position)
+        VALUES ${insertValues}
+      `;
+
+        await trx.raw(insertQuery);
+      });
+
+      res.status(201).json({ message: "Registro inserido com sucesso." });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.log("Erro ao inserir registro:", error.message);
+        res.status(500).json({ error: "Erro ao inserir registro" });
+      }
+    }
   }
-});
+);
 
 app.get("/speakers", async (req: Request, res: Response) => {
   try {
