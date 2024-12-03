@@ -73,7 +73,7 @@ app.get("/speakers", async (req: Request, res: Response) => {
       WITH LastSpeech AS (
         SELECT
           cm.name,
-          TO_CHAR(s.sacrament_meeting_date, 'YYYY/MM/DD') AS last_speech_date,
+          s.sacrament_meeting_date AS last_speech_date,
           s.speaker_position
         FROM
           church_members cm
@@ -88,11 +88,11 @@ app.get("/speakers", async (req: Request, res: Response) => {
       )
       SELECT
         name,
-        last_speech_date,
+        TO_CHAR(last_speech_date, 'DD/MM/YYYY') AS last_speech_date,
         speaker_position,
         (SELECT COUNT(*)
          FROM generate_series(
-           last_speech_date::date, -- Último discurso
+           last_speech_date,
            NOW(), 
            interval '1 week'
          ) gs
