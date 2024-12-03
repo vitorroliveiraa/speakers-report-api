@@ -235,7 +235,7 @@ export async function seed(knex: Knex): Promise<void> {
 
   for (const member of members) {
     const exists = await knex.raw(
-      "SELECT 1 FROM church_members name = ? LIMIT 1",
+      "SELECT 1 FROM church_members WHERE name = ? LIMIT 1",
       [member.name]
     );
 
