@@ -3,8 +3,9 @@ import express, { json, urlencoded, Request, Response } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 
-import knex from "./database";
+import knex from "./database/index.ts";
 import path from "path";
+import { router } from "./api/routes/index.ts";
 
 const dotenvFilepath = path.resolve(process.cwd(), ".env");
 dotenv.config({ path: dotenvFilepath });
@@ -22,6 +23,8 @@ interface ISpeakersReq {
   sacrament_meeting_date: Date;
   speakers: Speakers[];
 }
+
+app.use(router);
 
 app.post(
   "/speakers/insert",
