@@ -30,3 +30,23 @@ export const createWardAndUserSchema = z.object({
   wardData: wardSchema,
   userData: userSchema,
 });
+
+export const changePasswordSchema = z.object({
+  oldPassword: z.string({
+    required_error: "A senha é obrigatória",
+    invalid_type_error: "A senha deve ser uma string válida",
+  }),
+  newPassword: z.string({
+    required_error: "A senha é obrigatória",
+    invalid_type_error: "A senha deve ser uma string válida",
+  }),
+});
+
+export const requestUserSchema = z.object({
+  id: z
+    .number({
+      required_error: "A senha é obrigatória",
+      invalid_type_error: "A senha deve ser um number válido",
+    })
+    .min(1, "User ID is required"),
+});

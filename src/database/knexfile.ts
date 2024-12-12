@@ -1,4 +1,4 @@
-import dotenv from "dotenv";
+import "dotenv/config";
 import { Knex } from "knex";
 import path from "path";
 
