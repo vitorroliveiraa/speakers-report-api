@@ -3,6 +3,7 @@ import { IUserService } from "../../types/IUserService.ts";
 import {
   changePasswordSchema,
   createWardAndUserSchema,
+  forgotPasswordSchema,
   requestUserSchema,
 } from "../../validators/userValidator.ts";
 import { z } from "zod";
@@ -67,5 +68,9 @@ export class UserController {
       console.error("🐛 UserController - changePassword: ", error);
       return res.status(500).json({ error: "Internal server error" });
     }
+  }
+
+  async forgotPassword(req: Request, res: Response) {
+    const { email } = forgotPasswordSchema.parse(req.body);
   }
 }

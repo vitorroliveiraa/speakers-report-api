@@ -50,3 +50,23 @@ export const requestUserSchema = z.object({
     })
     .min(1, "User ID is required"),
 });
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().email("Endereço de email inválido"),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z
+    .string({
+      required_error: "O token é obrigatório",
+      invalid_type_error: "O token deve ser uma string válida",
+    })
+    .min(1, { message: "O token é obrigatório" }),
+  newPassword: z
+    .string()
+    .min(6, "A senha deve ter pelo menos 6 caracteres")
+    .regex(
+      /^(?=.*[A-Za-z])(?=.*\d).{6,}$/,
+      "A senha deve conter pelo menos uma letra e um número"
+    ),
+});
