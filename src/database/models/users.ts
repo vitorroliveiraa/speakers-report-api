@@ -5,6 +5,7 @@ export interface Users {
   ward_id: number;
   email: string;
   password: string;
+  member_number: string;
   created_at: Date;
   updated_at: Date;
 }

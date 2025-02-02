@@ -13,9 +13,5 @@ usersRoutes.get(
   authMiddleware,
   userController.getAllUsers.bind(userController)
 );
-usersRoutes.post(
-  "/change-password",
-  authMiddleware,
-  userController.changePassword.bind(userController)
-);
+
 export { usersRoutes };

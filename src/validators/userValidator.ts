@@ -5,6 +5,7 @@ const userSchema = z.object({
   role: z.string().min(1, "O papel é obrigatório"),
   email: z.string().email("Email inválido"),
   password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
+  member_number: z.string().min(6),
 });
 
 const wardSchema = z.object({

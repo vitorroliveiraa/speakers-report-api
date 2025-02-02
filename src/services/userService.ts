@@ -1,6 +1,6 @@
 import { verifyPassword } from "utils.ts/verifyPassword.ts";
 import knex from "../database/index.ts";
-import { UserChangePasswordDTO, UserDTO, WardDTO } from "../types/IUserDTO.ts";
+import { UserDTO, WardDTO } from "../types/IUserDTO.ts";
 import { IUserService } from "../types/IUserService.ts";
 import { hash } from "bcrypt";
 
@@ -45,22 +45,5 @@ export class UserService implements IUserService {
   async getAllUsers(): Promise<UserDTO[]> {
     const user = await knex("users").select("*");
     return user;
-  }
-
-  async changePassword({
-    oldPassword,
-    newPassword,
-    userId,
-  }: UserChangePasswordDTO): Promise<void> {
-    const user = await knex("users").where("id", userId).first();
-
-    if (!user || !(await verifyPassword(user.password, oldPassword))) {
-      throw new Error("Invalid current password");
-    }
-
-    const hashedNewPassword = await hash(newPassword, 8);
-    await knex("users")
-      .where("id", userId)
-      .update({ password: hashedNewPassword });
   }
 }
