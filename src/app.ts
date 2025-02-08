@@ -1,6 +1,9 @@
-import axios from "axios";
 import express, { json, urlencoded, Request, Response } from "express";
 import cors from "cors";
+import helmet from "helmet";
+import { rateLimit } from "express-rate-limit";
+
+
 import dotenv from "dotenv";
 
 import knex from "./database/index.ts";
@@ -10,10 +13,20 @@ import { router } from "./api/routes/index.ts";
 const dotenvFilepath = path.resolve(process.cwd(), ".env");
 dotenv.config({ path: dotenvFilepath });
 
+const corsOptions = {
+  origin: [process.env.FRONTEND_URL!],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}
+const limiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 100 });
+
 const app = express();
-app.use(cors());
+app.use(cors(corsOptions));
+app.use(limiter)
+
 app.use(json());
 app.use(urlencoded({ extended: true }));
+app.use(helmet());
 
 type Speakers = {
   member_id: number;
@@ -122,6 +135,14 @@ app.get("/church_members", async (req: Request, res: Response) => {
   } catch (error) {
     console.log("Erro ao retornar os membros:", error);
     res.status(500).json({ error: "Erro ao retornar os membros" });
+  }
+});
+
+app.use((err: Error, req: Request, res: Response, next: Function) => {
+  if (err.message === "Acesso não permitido por CORS") {
+    res.status(403).json({ message: "Acesso não permitido por CORS" });
+  } else {
+    next(err);
   }
 });
 

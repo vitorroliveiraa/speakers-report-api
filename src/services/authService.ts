@@ -70,8 +70,6 @@ export class AuthService implements IAuthService {
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + 1);
 
-    // await db("password_reset_tokens").delete().where("user_id", user?.id);
-
     await db("password_reset_tokens").insert({
       user_id: user?.id,
       token,

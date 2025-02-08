@@ -1,10 +1,14 @@
-import { z } from "zod";
+import {z} from "zod";
 
 const userSchema = z.object({
   name: z.string().min(1, "O nome é obrigatório"),
   role: z.string().min(1, "O papel é obrigatório"),
   email: z.string().email("Email inválido"),
-  password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
+  password: z.string()
+    .min(6, "A senha deve ter pelo menos 6 caracteres")
+    .refine((password) => /[a-zA-Z]/.test(password), {
+      message: 'A senha deve conter pelo menos uma letra.'
+    }),
   member_number: z.string().min(6),
 });
 
@@ -40,7 +44,10 @@ export const changePasswordSchema = z.object({
   newPassword: z.string({
     required_error: "A senha é obrigatória",
     invalid_type_error: "A senha deve ser uma string válida",
-  }),
+  }).min(6, 'É necessário no mínimo 6 caracteres.')
+    .refine((password) => /[a-zA-Z]/.test(password), {
+      message: 'A senha deve conter pelo menos uma letra.'
+    }),
 });
 
 export const requestUserSchema = z.object({
@@ -62,7 +69,7 @@ export const resetPasswordSchema = z.object({
       required_error: "O token é obrigatório",
       invalid_type_error: "O token deve ser uma string válida",
     })
-    .min(1, { message: "O token é obrigatório" }),
+    .min(1, {message: "O token é obrigatório"}),
   newPassword: z
     .string()
     .min(6, "A senha deve ter pelo menos 6 caracteres")
