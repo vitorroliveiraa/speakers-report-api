@@ -1,5 +1,6 @@
 import { Users } from "../database/models/users.ts";
-import { UserDTO, WardDTO } from "./IUserDTO.ts";
+import { IChurchMembers, UserDTO, WardDTO } from "./IUserDTO.ts";
+import { ChurchMembers } from "@database/models/churchMembers.ts";
 
 export interface IUserService {
   create(
@@ -7,4 +8,8 @@ export interface IUserService {
     userData: Omit<UserDTO, "id" | "ward_id" | "created_at" | "updated_at">
   ): Promise<void>;
   getAllUsers(): Promise<Users[]>;
+  extractNamesFromPDF(
+    wardId: string,
+    buffer: Buffer
+  ): Promise<IChurchMembers[]>;
 }

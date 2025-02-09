@@ -21,7 +21,7 @@ export class AuthService implements IAuthService {
     const samePasswords = await verifyPassword(data.password, user.password);
     if (!samePasswords) throw new Error("Usuário ou senha inválido");
 
-    const token = generateToken({ id: user.id, email: user.email });
+    const token = generateToken({ id: user.id, email: user.email, ward_id: user.ward_id });
 
     return {
       token,

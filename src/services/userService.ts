@@ -1,8 +1,10 @@
 import { verifyPassword } from "utils.ts/verifyPassword.ts";
 import knex from "../database/index.ts";
-import { UserDTO, WardDTO } from "../types/IUserDTO.ts";
+import { IChurchMembers, UserDTO, WardDTO } from "../types/IUserDTO.ts";
 import { IUserService } from "../types/IUserService.ts";
 import { hash } from "bcrypt";
+import pdfParse from "pdf-parse";
+import { ChurchMembers } from "@database/models/churchMembers.ts";
 
 export class UserService implements IUserService {
   async create(
@@ -45,5 +47,24 @@ export class UserService implements IUserService {
   async getAllUsers(): Promise<UserDTO[]> {
     const user = await knex("users").select("*");
     return user;
+  }
+
+  async extractNamesFromPDF(
+    wardId: string,
+    buffer: Buffer
+  ): Promise<IChurchMembers[]> {
+    const data = await pdfParse(buffer);
+    const text: string = data.text;
+
+    const nameRegex =
+      /([A-Z][a-zà-úÀ-Ú]+(?: [A-Z][a-zà-úÀ-Ú]+)*, [A-Z][a-zà-úÀ-Ú]+(?: [A-Z][a-zà-úÀ-Ú]+)*)/g;
+
+    const matches = Array.from(text.matchAll(nameRegex));
+    const names = matches.map((match: RegExpMatchArray) => ({
+      name: match[0],
+      ward_id: wardId,
+    }));
+
+    return names;
   }
 }

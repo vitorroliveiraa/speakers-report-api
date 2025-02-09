@@ -4,7 +4,7 @@ import { CustomJwtPayload } from "types/IUserDTO.ts";
 declare global {
   namespace Express {
     export interface Request {
-      user?: CustomJwtPayload;
+      user: CustomJwtPayload;
     }
   }
 }

@@ -4,9 +4,11 @@ import {
   changePasswordSchema,
   createWardAndUserSchema,
   forgotPasswordSchema,
+  pdfUploadSchema,
   requestUserSchema,
 } from "../../validators/userValidator.ts";
 import { z } from "zod";
+import { validatePDFStructure } from "utils.ts/validatePDFStructure.ts";
 
 export class UserController {
   constructor(private userService: IUserService) {}
@@ -31,6 +33,37 @@ export class UserController {
 
       console.error("🐛", error);
       res.status(500).json({ message: "Erro ao criar usuário" });
+    }
+  }
+
+  async upload(req: Request, res: Response) {
+    const validation = pdfUploadSchema.safeParse({ file: req.file });
+
+    if (!validation.success) {
+      return res.status(400).json({ error: validation.error.errors });
+    }
+
+    const { ward_id: wardId } = req.user;
+    const pdfFile = req.file?.buffer!;
+
+    try {
+      const isValid = await validatePDFStructure(pdfFile);
+
+      if (!isValid) {
+        return res
+          .status(400)
+          .send(
+            'O arquivo PDF deve conter apenas uma coluna chamada "Nome" em cada página.'
+          );
+      }
+
+      const names = await this.userService.extractNamesFromPDF(wardId, pdfFile);
+      return res.json(names);
+    } catch (error) {
+      console.error("🐛", error);
+      res
+        .status(500)
+        .json({ message: "Erro ao extrair nomes dos membros da igreja." });
     }
   }
 
