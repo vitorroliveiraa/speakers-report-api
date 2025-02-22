@@ -90,10 +90,6 @@ export class UserService implements IUserService {
 
   async createChurchMembers(wardId: number, members: IChurchMembers[]) {
     try {
-      // await knex("church_members").where("ward_id", wardId).del();
-
-      // await knex("church_members").insert(members);
-
       const existingMembers = await knex("church_members")
         .where({ ward_id: wardId })
         .select("id", "name");
