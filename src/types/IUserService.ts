@@ -9,7 +9,8 @@ export interface IUserService {
   ): Promise<void>;
   getAllUsers(): Promise<Users[]>;
   extractNamesFromPDF(
-    wardId: string,
+    wardId: number,
     buffer: Buffer
   ): Promise<IChurchMembers[]>;
+  createChurchMembers(wardId: number, members: IChurchMembers[]): Promise<void>;
 }

@@ -1,3 +1,4 @@
+import { ChurchMembers } from "@database/models/churchMembers.ts";
 import { Users, Wards } from "../../models";
 
 declare module "knex/types/tables" {
@@ -5,5 +6,6 @@ declare module "knex/types/tables" {
     users: Users;
     wards: Wards;
     password_reset_tokens: PasswordResetTokens;
+    church_members: ChurchMembers;
   }
 }

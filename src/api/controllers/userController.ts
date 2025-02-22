@@ -58,7 +58,12 @@ export class UserController {
       }
 
       const names = await this.userService.extractNamesFromPDF(wardId, pdfFile);
-      return res.json(names);
+
+      await this.userService.createChurchMembers(wardId, names);
+      //!DEPOIS QUE EXTRAIR OS NOMES, PRECISA SALVAR
+      //!AVALIAR SE É BOM FAZER ESSA PARTE DENTRO DE UMA TRANSACTION
+
+      return res.status(200).json("Membros da igreja inseridos com sucesso.");
     } catch (error) {
       console.error("🐛", error);
       res

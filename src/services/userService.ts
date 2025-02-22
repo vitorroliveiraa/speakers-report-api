@@ -50,7 +50,7 @@ export class UserService implements IUserService {
   }
 
   async extractNamesFromPDF(
-    wardId: string,
+    wardId: number,
     buffer: Buffer
   ): Promise<IChurchMembers[]> {
     const data = await pdfParse(buffer);
@@ -66,5 +66,41 @@ export class UserService implements IUserService {
     }));
 
     return names;
+  }
+
+  async createChurchMembers(wardId: number, members: IChurchMembers[]) {
+    try {
+      // await knex("church_members").where("ward_id", wardId).del();
+
+      // await knex("church_members").insert(members);
+
+      const existingMembers = await knex("users")
+        .where({ ward_id: wardId })
+        .select("id", "name");
+
+      const existingNamesSet = new Set(
+        existingMembers.map((member) => member.name)
+      );
+
+      const newNamesSet = new Set(members.map((member) => member.name));
+
+      const membersToAdd = members.filter(
+        (member) => !existingNamesSet.has(member.name)
+      );
+
+      const membersToRemove = existingMembers
+        .filter((member) => !newNamesSet.has(member.name))
+        .map((member) => member.id);
+
+      if (membersToAdd.length > 0) {
+        await knex("church_members").insert(membersToAdd);
+      }
+
+      if (membersToRemove.length > 0) {
+        await knex("church_members").whereIn("id", membersToRemove).del();
+      }
+    } catch (error) {
+      console.error("❌ Erro ao inserir usuários:", error);
+    }
   }
 }
