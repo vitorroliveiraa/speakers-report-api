@@ -56,16 +56,36 @@ export class UserService implements IUserService {
     const data = await pdfParse(buffer);
     const text: string = data.text;
 
-    const nameRegex =
-      /([A-Z][a-zà-úÀ-Ú]+(?: [A-Z][a-zà-úÀ-Ú]+)*, [A-Z][a-zà-úÀ-Ú]+(?: [A-Z][a-zà-úÀ-Ú]+)*)/g;
+    // Divide o texto em linhas
+    const lines = text.split("\n");
 
-    const matches = Array.from(text.matchAll(nameRegex));
-    const names = matches.map((match: RegExpMatchArray) => ({
-      name: match[0],
-      ward_id: wardId,
+    // Filtra e limpa as linhas para extrair os nomes
+    const names: string[] = [];
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+
+      // Ignora linhas que contêm o texto de rodapé
+      if (trimmedLine.includes("Somente para Uso da Igreja")) {
+        continue; // Pula para a próxima linha
+      }
+
+      // Verifica se a linha parece ser um nome (contém uma vírgula e tem mais de 3 caracteres)
+      if (trimmedLine.includes(",") && trimmedLine.length > 3) {
+        names.push(trimmedLine);
+      }
+    }
+
+    if (names.length === 0) {
+      throw new Error("Nenhum nome encontrado no PDF.");
+    }
+
+    // Gera a lista de membros com um ward_id aleatório
+    const members: IChurchMembers[] = names.map((name) => ({
+      name: name.trim(),
+      ward_id: wardId, // Gera um número aleatório para ward_id
     }));
 
-    return names;
+    return members;
   }
 
   async createChurchMembers(wardId: number, members: IChurchMembers[]) {
@@ -74,7 +94,7 @@ export class UserService implements IUserService {
 
       // await knex("church_members").insert(members);
 
-      const existingMembers = await knex("users")
+      const existingMembers = await knex("church_members")
         .where({ ward_id: wardId })
         .select("id", "name");
 
@@ -92,6 +112,7 @@ export class UserService implements IUserService {
         .filter((member) => !newNamesSet.has(member.name))
         .map((member) => member.id);
 
+      //!QUANDO NÃO INSERIR, LANÇAR ERRO
       if (membersToAdd.length > 0) {
         await knex("church_members").insert(membersToAdd);
       }
