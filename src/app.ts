@@ -1,51 +1,87 @@
-import axios from "axios";
 import express, { json, urlencoded, Request, Response } from "express";
 import cors from "cors";
+import helmet from "helmet";
+import { rateLimit } from "express-rate-limit";
+
+
 import dotenv from "dotenv";
 
-import knex from "./database";
+import knex from "./database/index.ts";
 import path from "path";
+import { router } from "./api/routes/index.ts";
 
 const dotenvFilepath = path.resolve(process.cwd(), ".env");
 dotenv.config({ path: dotenvFilepath });
-//Tredsdfn8- senha ubuntu
+
+const corsOptions = {
+  origin: [process.env.FRONTEND_URL!],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}
+const limiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 100 });
+
 const app = express();
-app.use(cors());
+app.use(cors(corsOptions));
+app.use(limiter)
+
 app.use(json());
 app.use(urlencoded({ extended: true }));
+app.use(helmet());
 
-app.post("/speakers/insert", async (req: Request, res: Response) => {
-  const speakers = req.body;
-  //   console.log("data", data);
+type Speakers = {
+  member_id: number;
+  speaker_position: number;
+};
+interface ISpeakersReq {
+  sacrament_meeting_date: Date;
+  speakers: Speakers[];
+}
 
-  try {
-    await knex.transaction(async (trx) => {
-      for (const speaker of speakers) {
-        await trx("speakers").insert({
-          sacrament_meeting_date: speaker.sacrament_meeting_date,
-          member_id: speaker.member_id,
-          speaker_position: speaker.speaker_position,
-        });
+app.use(router);
+
+app.post(
+  "/speakers/insert",
+  async (req: Request<{}, {}, ISpeakersReq>, res: Response) => {
+    const { sacrament_meeting_date, speakers } = req.body;
+
+    const sacramentMeetingDate = sacrament_meeting_date;
+
+    try {
+      const exists = await knex.raw(
+        "SELECT 1 FROM speakers WHERE sacrament_meeting_date = ? LIMIT 1",
+        [sacramentMeetingDate]
+      );
+
+      if (exists.rowCount > 0) {
+        return res
+          .status(409)
+          .json({ error: "Já existe um registro nessa data." });
       }
-    });
-    // const sql = `
-    //   INSERT INTO speakers (sacrament_meeting_date, first_speaker, second_speaker, third_speaker)
-    //   VALUES (?, ?, ?, ?)
-    // `;
 
-    // await knex.raw(sql, [
-    //   sacramentMeetingDate,
-    //   firstSpeaker,
-    //   secondSpeaker,
-    //   thirdSpeaker,
-    // ]);
+      await knex.transaction(async (trx) => {
+        const insertValues = speakers
+          .map((speaker) => {
+            return `('${sacrament_meeting_date}', '${speaker.member_id}', '${speaker.speaker_position}')`;
+          })
+          .join(", ");
 
-    res.status(201).json({ message: "Registro inserido com sucesso." });
-  } catch (error) {
-    console.log("Erro ao inserir registro:", error);
-    res.status(500).json({ error: "Erro ao inserir registro" });
+        const insertQuery = `
+        INSERT INTO speakers (sacrament_meeting_date, member_id, speaker_position)
+        VALUES ${insertValues}
+      `;
+
+        await trx.raw(insertQuery);
+      });
+
+      res.status(201).json({ message: "Registro inserido com sucesso." });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.log("Erro ao inserir registro:", error.message);
+        res.status(500).json({ error: "Erro ao inserir registro" });
+      }
+    }
   }
-});
+);
 
 app.get("/speakers", async (req: Request, res: Response) => {
   try {
@@ -53,7 +89,7 @@ app.get("/speakers", async (req: Request, res: Response) => {
       WITH LastSpeech AS (
         SELECT
           cm.name,
-          TO_CHAR(s.sacrament_meeting_date, 'YYYY/MM/DD') AS last_speech_date,
+          s.sacrament_meeting_date AS last_speech_date,
           s.speaker_position
         FROM
           church_members cm
@@ -68,11 +104,11 @@ app.get("/speakers", async (req: Request, res: Response) => {
       )
       SELECT
         name,
-        last_speech_date,
+        TO_CHAR(last_speech_date, 'DD/MM/YYYY') AS last_speech_date,
         speaker_position,
         (SELECT COUNT(*)
          FROM generate_series(
-           last_speech_date::date, -- Último discurso
+           last_speech_date,
            NOW(), 
            interval '1 week'
          ) gs
@@ -99,6 +135,14 @@ app.get("/church_members", async (req: Request, res: Response) => {
   } catch (error) {
     console.log("Erro ao retornar os membros:", error);
     res.status(500).json({ error: "Erro ao retornar os membros" });
+  }
+});
+
+app.use((err: Error, req: Request, res: Response, next: Function) => {
+  if (err.message === "Acesso não permitido por CORS") {
+    res.status(403).json({ message: "Acesso não permitido por CORS" });
+  } else {
+    next(err);
   }
 });
 

@@ -4,7 +4,7 @@ import "dotenv/config";
 
 // Definir o ambiente atual, sendo 'development' por padrão
 const environment = process.env.NODE_ENV || "development";
-console.log("environment", environment);
+// console.log("environment", environment);
 
 const knexConfig = config[environment];
 
