@@ -33,6 +33,7 @@ __export(knexfile_exports, {
   default: () => knexfile_default
 });
 module.exports = __toCommonJS(knexfile_exports);
+var import_config = require("dotenv/config");
 var import_path = __toESM(require("path"));
 var knexConfig = {
   development: {
@@ -69,7 +70,12 @@ var knexConfig = {
   },
   production: {
     client: "pg",
-    connection: process.env.CONNECTION_STRING,
+    connection: {
+      connectionString: process.env.CONNECTION_STRING,
+      ssl: {
+        rejectUnauthorized: false
+      }
+    },
     migrations: {
       tableName: "knex_migrations",
       extension: "ts",

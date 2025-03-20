@@ -17,30 +17,17 @@ var __copyProps = (to, from, except, desc) => {
 };
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// src/database/migrations/20240918182104_church_members.ts
-var church_members_exports = {};
-__export(church_members_exports, {
-  down: () => down,
-  up: () => up
+// src/utils.ts/verifyPassword.ts
+var verifyPassword_exports = {};
+__export(verifyPassword_exports, {
+  verifyPassword: () => verifyPassword
 });
-module.exports = __toCommonJS(church_members_exports);
-async function up(knex) {
-  return knex.schema.createTable("church_members", (table) => {
-    table.increments("id").primary();
-    table.string("name", 100).notNullable();
-    table.integer("ward_id").unsigned().notNullable();
-    table.foreign("ward_id").references("id").inTable("wards").onDelete("CASCADE").onUpdate("CASCADE");
-  }).then(() => {
-    console.log("\u{1F6A9} Created table: church_members");
-  });
-}
-async function down(knex) {
-  return knex.schema.dropTable("church_members").then(() => {
-    console.log("\u{1F6A9} Dropped table: church_members");
-  });
+module.exports = __toCommonJS(verifyPassword_exports);
+var import_bcrypt = require("bcrypt");
+async function verifyPassword(password, hash) {
+  return await (0, import_bcrypt.compare)(password, hash);
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
-  down,
-  up
+  verifyPassword
 });
