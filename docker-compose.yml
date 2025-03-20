@@ -3,6 +3,8 @@ version: '3.7'
 services:
   postgres:
     image: bitnami/postgresql:latest
+    container_name: speakers-report-db
+    restart: always
     ports:
       - '5432:5432'
     environment:
@@ -11,6 +13,11 @@ services:
       - POSTGRES_DB=speakers-report
     volumes:
       - speakers-report-pg-data:/bitnami/postgresql
+    networks:
+      - speakers-network
+
+networks:
+  speakers-network:
 
 volumes:
   speakers-report-pg-data:

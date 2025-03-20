@@ -15,6 +15,7 @@ const knexConfig: KnexConfig = {
       user: process.env.DB_USER || "admin",
       password: process.env.DB_PWD || "admin",
       database: process.env.DB_NAME || "speakers-report",
+      ssl: false,
     },
     pool: {
       min: 2, // Mínimo de conexões no pool
@@ -37,10 +38,12 @@ const knexConfig: KnexConfig = {
   production: {
     client: "pg",
     connection: {
-      connectionString: process.env.CONNECTION_STRING,
-      ssl: {
-        rejectUnauthorized: false,
-      },
+      host: process.env.DB_HOST || "localhost",
+      port: parseInt(process.env.DB_PORT || "5432"),
+      user: process.env.DB_USER || "admin",
+      password: process.env.DB_PWD || "admin",
+      database: process.env.DB_NAME || "speakers-report",
+      ssl: false,
     },
     migrations: {
       tableName: "knex_migrations",
