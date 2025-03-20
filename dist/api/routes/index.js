@@ -27,90 +27,12 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 ));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// src/app.ts
-var app_exports = {};
-__export(app_exports, {
-  default: () => app_default
-});
-module.exports = __toCommonJS(app_exports);
-var import_express4 = __toESM(require("express"));
-var import_cors = __toESM(require("cors"));
-var import_helmet = __toESM(require("helmet"));
-var import_express_rate_limit = require("express-rate-limit");
-var import_dotenv = __toESM(require("dotenv"));
-
-// src/database/index.ts
-var import_knex = __toESM(require("knex"));
-
-// src/database/knexfile.ts
-var import_config = require("dotenv/config");
-var import_path = __toESM(require("path"));
-var knexConfig = {
-  development: {
-    client: "pg",
-    connection: {
-      host: process.env.DB_HOST || "localhost",
-      port: parseInt(process.env.DB_PORT || "5432"),
-      user: process.env.DB_USER || "admin",
-      password: process.env.DB_PWD || "admin",
-      database: process.env.DB_NAME || "speakers-report"
-    },
-    pool: {
-      min: 2,
-      // Mínimo de conexões no pool
-      max: 10,
-      // Máximo de conexões no pool
-      acquireTimeoutMillis: 3e4,
-      // Tempo limite para adquirir uma conexão (em milissegundos)
-      idleTimeoutMillis: 6e4,
-      // Tempo limite de inatividade para uma conexão (em milissegundos)
-      reapIntervalMillis: 1e3
-      // Intervalo para tentativas de reconexão (em milissegundos)
-    },
-    migrations: {
-      tableName: "knex_migrations",
-      extension: "ts",
-      directory: import_path.default.join(process.cwd(), "migrations")
-    },
-    seeds: {
-      directory: import_path.default.join(process.cwd(), "seeds"),
-      extension: "ts",
-      timestampFilenamePrefix: true
-    }
-  },
-  production: {
-    client: "pg",
-    connection: {
-      connectionString: process.env.CONNECTION_STRING,
-      ssl: {
-        rejectUnauthorized: false
-      }
-    },
-    migrations: {
-      tableName: "knex_migrations",
-      extension: "ts",
-      directory: import_path.default.join(process.cwd(), "migrations")
-    },
-    seeds: {
-      directory: import_path.default.join(process.cwd(), "seeds"),
-      extension: "ts",
-      timestampFilenamePrefix: true
-    }
-  }
-};
-var knexfile_default = knexConfig;
-
-// src/database/index.ts
-var import_config2 = require("dotenv/config");
-var environment = process.env.NODE_ENV || "development";
-var knexConfig2 = knexfile_default[environment];
-var db = (0, import_knex.default)(knexConfig2);
-var database_default = db;
-
-// src/app.ts
-var import_path2 = __toESM(require("path"));
-
 // src/api/routes/index.ts
+var routes_exports = {};
+__export(routes_exports, {
+  router: () => router
+});
+module.exports = __toCommonJS(routes_exports);
 var import_express3 = require("express");
 
 // src/api/routes/userRoutes.ts
@@ -260,6 +182,74 @@ var UserController = class {
     }
   }
 };
+
+// src/database/index.ts
+var import_knex = __toESM(require("knex"));
+
+// src/database/knexfile.ts
+var import_config = require("dotenv/config");
+var import_path = __toESM(require("path"));
+var knexConfig = {
+  development: {
+    client: "pg",
+    connection: {
+      host: process.env.DB_HOST || "localhost",
+      port: parseInt(process.env.DB_PORT || "5432"),
+      user: process.env.DB_USER || "admin",
+      password: process.env.DB_PWD || "admin",
+      database: process.env.DB_NAME || "speakers-report"
+    },
+    pool: {
+      min: 2,
+      // Mínimo de conexões no pool
+      max: 10,
+      // Máximo de conexões no pool
+      acquireTimeoutMillis: 3e4,
+      // Tempo limite para adquirir uma conexão (em milissegundos)
+      idleTimeoutMillis: 6e4,
+      // Tempo limite de inatividade para uma conexão (em milissegundos)
+      reapIntervalMillis: 1e3
+      // Intervalo para tentativas de reconexão (em milissegundos)
+    },
+    migrations: {
+      tableName: "knex_migrations",
+      extension: "ts",
+      directory: import_path.default.join(process.cwd(), "migrations")
+    },
+    seeds: {
+      directory: import_path.default.join(process.cwd(), "seeds"),
+      extension: "ts",
+      timestampFilenamePrefix: true
+    }
+  },
+  production: {
+    client: "pg",
+    connection: {
+      connectionString: process.env.CONNECTION_STRING,
+      ssl: {
+        rejectUnauthorized: false
+      }
+    },
+    migrations: {
+      tableName: "knex_migrations",
+      extension: "ts",
+      directory: import_path.default.join(process.cwd(), "migrations")
+    },
+    seeds: {
+      directory: import_path.default.join(process.cwd(), "seeds"),
+      extension: "ts",
+      timestampFilenamePrefix: true
+    }
+  }
+};
+var knexfile_default = knexConfig;
+
+// src/database/index.ts
+var import_config2 = require("dotenv/config");
+var environment = process.env.NODE_ENV || "development";
+var knexConfig2 = knexfile_default[environment];
+var db = (0, import_knex.default)(knexConfig2);
+var database_default = db;
 
 // src/services/userService.ts
 var import_bcrypt = require("bcrypt");
@@ -597,113 +587,10 @@ authRoutes.post(
 var router = (0, import_express3.Router)();
 router.use("/api/v1/users", usersRoutes);
 router.use("/api/v1/auth", authRoutes);
-
-// src/app.ts
-var dotenvFilepath = import_path2.default.resolve(process.cwd(), ".env");
-import_dotenv.default.config({ path: dotenvFilepath });
-var corsOptions = {
-  origin: [process.env.FRONTEND_URL],
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
-};
-var limiter = (0, import_express_rate_limit.rateLimit)({ windowMs: 15 * 60 * 1e3, limit: 100 });
-var app = (0, import_express4.default)();
-app.use((0, import_cors.default)(corsOptions));
-app.use(limiter);
-app.use((0, import_express4.json)());
-app.use((0, import_express4.urlencoded)({ extended: true }));
-app.use((0, import_helmet.default)());
-app.use(router);
-app.post(
-  "/speakers/insert",
-  async (req, res) => {
-    const { sacrament_meeting_date, speakers } = req.body;
-    const sacramentMeetingDate = sacrament_meeting_date;
-    try {
-      const exists = await database_default.raw(
-        "SELECT 1 FROM speakers WHERE sacrament_meeting_date = ? LIMIT 1",
-        [sacramentMeetingDate]
-      );
-      if (exists.rowCount > 0) {
-        return res.status(409).json({ error: "J\xE1 existe um registro nessa data." });
-      }
-      await database_default.transaction(async (trx) => {
-        const insertValues = speakers.map((speaker) => {
-          return `('${sacrament_meeting_date}', '${speaker.member_id}', '${speaker.speaker_position}')`;
-        }).join(", ");
-        const insertQuery = `
-        INSERT INTO speakers (sacrament_meeting_date, member_id, speaker_position)
-        VALUES ${insertValues}
-      `;
-        await trx.raw(insertQuery);
-      });
-      res.status(201).json({ message: "Registro inserido com sucesso." });
-    } catch (error) {
-      if (error instanceof Error) {
-        console.log("Erro ao inserir registro:", error.message);
-        res.status(500).json({ error: "Erro ao inserir registro" });
-      }
-    }
-  }
-);
-app.get("/speakers", async (req, res) => {
-  try {
-    const sql = `
-      WITH LastSpeech AS (
-        SELECT
-          cm.name,
-          s.sacrament_meeting_date AS last_speech_date,
-          s.speaker_position
-        FROM
-          church_members cm
-        JOIN
-          speakers s ON s.member_id = cm.id
-        WHERE
-          s.sacrament_meeting_date = (
-            SELECT MAX(sacrament_meeting_date)
-            FROM speakers
-            WHERE member_id = cm.id
-          )
-      )
-      SELECT
-        name,
-        TO_CHAR(last_speech_date, 'DD/MM/YYYY') AS last_speech_date,
-        speaker_position,
-        (SELECT COUNT(*)
-         FROM generate_series(
-           last_speech_date,
-           NOW(), 
-           interval '1 week'
-         ) gs
-         WHERE EXTRACT(DOW FROM gs) = 0 -- Somente domingos
-        ) AS sundays_since_last_speech
-      FROM
-        LastSpeech;
-    `;
-    const result = await database_default.raw(sql);
-    res.status(200).json(result.rows);
-  } catch (error) {
-    console.log("Erro ao retornar os registros:", error);
-    res.status(500).json({ error: "Erro ao retornar os registros" });
-  }
+// Annotate the CommonJS export names for ESM import in node:
+0 && (module.exports = {
+  router
 });
-app.get("/church_members", async (req, res) => {
-  try {
-    const result = await database_default.select().from("church_members");
-    res.status(200).json(result);
-  } catch (error) {
-    console.log("Erro ao retornar os membros:", error);
-    res.status(500).json({ error: "Erro ao retornar os membros" });
-  }
-});
-app.use((err, req, res, next) => {
-  if (err.message === "Acesso n\xE3o permitido por CORS") {
-    res.status(403).json({ message: "Acesso n\xE3o permitido por CORS" });
-  } else {
-    next(err);
-  }
-});
-var app_default = app;
 //!DEPOIS QUE EXTRAIR OS NOMES, PRECISA SALVAR
 //!AVALIAR SE É BOM FAZER ESSA PARTE DENTRO DE UMA TRANSACTION
 //!QUANDO NÃO INSERIR, LANÇAR ERRO

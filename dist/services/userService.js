@@ -27,12 +27,14 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 ));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// src/database/index.ts
-var database_exports = {};
-__export(database_exports, {
-  default: () => database_default
+// src/services/userService.ts
+var userService_exports = {};
+__export(userService_exports, {
+  UserService: () => UserService
 });
-module.exports = __toCommonJS(database_exports);
+module.exports = __toCommonJS(userService_exports);
+
+// src/database/index.ts
 var import_knex = __toESM(require("knex"));
 
 // src/database/knexfile.ts
@@ -99,3 +101,88 @@ var environment = process.env.NODE_ENV || "development";
 var knexConfig2 = knexfile_default[environment];
 var db = (0, import_knex.default)(knexConfig2);
 var database_default = db;
+
+// src/services/userService.ts
+var import_bcrypt = require("bcrypt");
+var import_pdf_parse = __toESM(require("pdf-parse"));
+var UserService = class {
+  async create(wardData, userData) {
+    const trx = await database_default.transaction();
+    try {
+      const existingUser = await trx("users").where({ email: userData.email }).first();
+      if (existingUser) throw new Error("O email informado j\xE1 est\xE1 em uso");
+      const [wardIdObj] = await trx("wards").insert(wardData).returning("id");
+      const passwordHash = await (0, import_bcrypt.hash)(userData.password, 8);
+      const user = {
+        ...userData,
+        ward_id: wardIdObj.id
+      };
+      await trx("users").insert({
+        ...user,
+        password: passwordHash,
+        created_at: /* @__PURE__ */ new Date(),
+        updated_at: /* @__PURE__ */ new Date()
+      });
+      await trx.commit();
+    } catch (error) {
+      await trx.rollback();
+      if (error instanceof Error)
+        throw new Error("Erro ao criar ward e usu\xE1rio: " + error.message);
+      else console.log("\u{1F41B} Erro desconhecido:", error);
+    }
+  }
+  async getAllUsers() {
+    const user = await database_default("users").select("*");
+    return user;
+  }
+  async extractNamesFromPDF(wardId, buffer) {
+    const data = await (0, import_pdf_parse.default)(buffer);
+    const text = data.text;
+    const lines = text.split("\n");
+    const names = [];
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+      if (trimmedLine.includes("Somente para Uso da Igreja")) {
+        continue;
+      }
+      if (trimmedLine.includes(",") && trimmedLine.length > 3) {
+        names.push(trimmedLine);
+      }
+    }
+    if (names.length === 0) {
+      throw new Error("Nenhum nome encontrado no PDF.");
+    }
+    const members = names.map((name) => ({
+      name: name.trim(),
+      ward_id: wardId
+      // Gera um número aleatório para ward_id
+    }));
+    return members;
+  }
+  async createChurchMembers(wardId, members) {
+    try {
+      const existingMembers = await database_default("church_members").where({ ward_id: wardId }).select("id", "name");
+      const existingNamesSet = new Set(
+        existingMembers.map((member) => member.name)
+      );
+      const newNamesSet = new Set(members.map((member) => member.name));
+      const membersToAdd = members.filter(
+        (member) => !existingNamesSet.has(member.name)
+      );
+      const membersToRemove = existingMembers.filter((member) => !newNamesSet.has(member.name)).map((member) => member.id);
+      if (membersToAdd.length > 0) {
+        await database_default("church_members").insert(membersToAdd);
+      }
+      if (membersToRemove.length > 0) {
+        await database_default("church_members").whereIn("id", membersToRemove).del();
+      }
+    } catch (error) {
+      console.error("\u274C Erro ao inserir usu\xE1rios:", error);
+    }
+  }
+};
+// Annotate the CommonJS export names for ESM import in node:
+0 && (module.exports = {
+  UserService
+});
+//!QUANDO NÃO INSERIR, LANÇAR ERRO

@@ -17,26 +17,27 @@ var __copyProps = (to, from, except, desc) => {
 };
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// src/database/migrations/20240918182104_church_members.ts
-var church_members_exports = {};
-__export(church_members_exports, {
+// src/database/migrations/20241203132009_speakers.ts
+var speakers_exports = {};
+__export(speakers_exports, {
   down: () => down,
   up: () => up
 });
-module.exports = __toCommonJS(church_members_exports);
+module.exports = __toCommonJS(speakers_exports);
 async function up(knex) {
-  return knex.schema.createTable("church_members", (table) => {
+  return knex.schema.createTable("speakers", (table) => {
     table.increments("id").primary();
-    table.string("name", 100).notNullable();
-    table.integer("ward_id").unsigned().notNullable();
-    table.foreign("ward_id").references("id").inTable("wards").onDelete("CASCADE").onUpdate("CASCADE");
+    table.date("sacrament_meeting_date");
+    table.integer("member_id", 100).unsigned().notNullable();
+    table.integer("speaker_position", 100);
+    table.foreign("member_id").references("id").inTable("church_members").onDelete("CASCADE").onUpdate("CASCADE");
   }).then(() => {
-    console.log("\u{1F6A9} Created table: church_members");
+    console.log("\u{1F6A9} Created table: speakers");
   });
 }
 async function down(knex) {
-  return knex.schema.dropTable("church_members").then(() => {
-    console.log("\u{1F6A9} Dropped table: church_members");
+  return knex.schema.dropTable("speakers").then(() => {
+    console.log("\u{1F6A9} Dropped table: speakers");
   });
 }
 // Annotate the CommonJS export names for ESM import in node:
