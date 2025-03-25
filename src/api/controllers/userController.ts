@@ -14,9 +14,9 @@ export class UserController {
   constructor(private userService: IUserService) {}
 
   async createUser(req: Request, res: Response) {
-    const { wardData, userData } = createWardAndUserSchema.parse(req.body);
-
     try {
+      const { wardData, userData } = createWardAndUserSchema.parse(req.body);
+
       await this.userService.create(wardData, userData);
 
       res.status(201).json({ message: "Usuário criado com sucesso" });
