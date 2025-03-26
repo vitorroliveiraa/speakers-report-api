@@ -20,6 +20,7 @@
   "description": "",
   "exports": "./dist/index.mjs",
   "dependencies": {
+    "@sendgrid/mail": "^8.1.4",
     "@types/crypto-js": "^4.2.2",
     "@types/nodemailer": "^6.4.17",
     "@types/pdf-parse": "^1.1.4",
