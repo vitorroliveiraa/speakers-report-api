@@ -61,7 +61,9 @@ export class AuthController {
         .json({ message: "Verifique seu e-mail para redefinir sua senha." });
     } catch (error) {
       console.error("🐛", error);
-      res.status(500).json({ message: "" });
+      res
+        .status(400)
+        .json({ error: (error as Error).message || "Falha ao enviar e-mail." });
     }
   }
 
