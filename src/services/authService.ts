@@ -12,6 +12,9 @@ import nodemailer from "nodemailer";
 import { PasswordResetTokens } from "@database/models/passwordResetTokens.ts";
 import { Users } from "@database/models/users.ts";
 import "dotenv/config";
+import sgMail from "@sendgrid/mail";
+
+sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
 
 export class AuthService implements IAuthService {
   async login(data: AuthDTO): Promise<AuthResponse> {
@@ -85,25 +88,28 @@ export class AuthService implements IAuthService {
 
     const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
 
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+    const msg = {
+      to: user.email,
+      from: {
+        name: "Suporte - LDS Toolkit",
+        email: process.env.EMAIL_FROM!
       },
-    });
-
-    await transporter.sendMail({
-      from: `"Suporte" <${process.env.EMAIL_USER}>`,
-      to: user?.email,
       subject: "Redefinição de senha",
       html: `
-        <p>Olá, ${user?.name}!</p>
+        <p>Olá, ${user.name}!</p>
         <p>Você solicitou a redefinição de senha. Clique no link abaixo para continuar:</p>
         <a href="${resetLink}">${resetLink}</a>
         <p>Se você não solicitou essa alteração, ignore este e-mail.</p>
       `,
-    });
+    };
+
+    try {
+      await sgMail.send(msg);
+      console.log("E-mail de redefinição enviado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao enviar e-mail:", error);
+      throw new Error("Falha ao enviar e-mail de redefinição.");
+    }
   }
 
   async resetPassword(token: string, newPassword: string): Promise<void> {
