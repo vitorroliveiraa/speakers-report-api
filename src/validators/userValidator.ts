@@ -10,7 +10,9 @@ const userSchema = z.object({
     .refine((password) => /[a-zA-Z]/.test(password), {
       message: "A senha deve conter pelo menos uma letra.",
     }),
-  member_number: z.string().min(6),
+  member_number: z
+    .string()
+    .min(6, "O número de membro deve ter pelo menos 6 caracteres."),
 });
 
 const wardSchema = z.object({
@@ -59,11 +61,16 @@ export const requestUserSchema = z.object({
       required_error: "A senha é obrigatória",
       invalid_type_error: "A senha deve ser um number válido",
     })
-    .min(1, "User ID is required"),
+    .min(1, "O ID do usuário é obrigatório."),
 });
 
 export const forgotPasswordSchema = z.object({
-  email: z.string().email("Endereço de email inválido"),
+  email: z
+    .string({
+      required_error: "O email é obrigatório.",
+      invalid_type_error: "O email deve ser uma string válida.",
+    })
+    .email("Endereço de email inválido."),
 });
 
 export const resetPasswordSchema = z.object({
@@ -74,7 +81,10 @@ export const resetPasswordSchema = z.object({
     })
     .min(1, { message: "O token é obrigatório" }),
   newPassword: z
-    .string()
+    .string({
+      required_error: "A nova senha é obrigatório.",
+      invalid_type_error: "A nova senha deve ser uma string válida.",
+    })
     .min(6, "A senha deve ter pelo menos 6 caracteres")
     .regex(
       /^(?=.*[A-Za-z])(?=.*\d).{6,}$/,
