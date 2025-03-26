@@ -92,7 +92,7 @@ export class AuthService implements IAuthService {
       to: user.email,
       from: {
         name: "Suporte - LDS Toolkit",
-        email: process.env.EMAIL_FROM!
+        email: process.env.EMAIL_FROM!,
       },
       subject: "Redefinição de senha",
       html: `
