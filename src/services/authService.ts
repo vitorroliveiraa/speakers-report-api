@@ -6,13 +6,13 @@ import { AuthDTO } from "types/IAuthDTO.ts";
 import { UserChangePasswordDTO } from "types/IUserDTO.ts";
 import { hash } from "bcrypt";
 import db from "../database";
-import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 import { PasswordResetTokens } from "@database/models/passwordResetTokens.ts";
 import { Users } from "@database/models/users.ts";
 import "dotenv/config";
 import sgMail from "@sendgrid/mail";
+import { AppError } from "utils.ts/appError.ts";
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
 
@@ -88,12 +88,22 @@ export class AuthService implements IAuthService {
 
     const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
 
-    const msg = {
-      to: user.email,
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT),
+      secure: process.env.SMTP_SECURE === "true",
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+
+    await transporter.sendMail({
       from: {
         name: "Suporte - LDS Toolkit",
-        email: process.env.EMAIL_FROM!,
+        address: process.env.SMTP_USER!,
       },
+      to: user.email,
       subject: "Redefinição de senha",
       html: `
         <p>Olá, ${user.name}!</p>
@@ -101,39 +111,43 @@ export class AuthService implements IAuthService {
         <a href="${resetLink}">${resetLink}</a>
         <p>Se você não solicitou essa alteração, ignore este e-mail.</p>
       `,
-    };
-
-    try {
-      await sgMail.send(msg);
-      console.log("E-mail de redefinição enviado com sucesso!");
-    } catch (error) {
-      console.error("Erro ao enviar e-mail:", error);
-      throw new Error("Falha ao enviar e-mail de redefinição.");
-    }
+    });
   }
 
   async resetPassword(token: string, newPassword: string): Promise<void> {
-    const resetToken = await db<PasswordResetTokens>("password_reset_tokens")
-      .where("token", token)
-      .first();
+    try {
+      const resetToken = await db<PasswordResetTokens>("password_reset_tokens")
+        .where("token", token)
+        .first();
 
-    if (!resetToken) {
-      throw new Error("Token inválido.");
+      if (!resetToken) {
+        throw new AppError(
+          "Token de redefinição inválido ou já utilizado",
+          404
+        );
+      }
+
+      const now = new Date();
+      if (new Date(resetToken.expires_at) < now) {
+        throw new AppError("Token de redefinição expirado", 410);
+      }
+
+      const hashedPassword = await hash(newPassword, 8);
+
+      await db.transaction(async (trx) => {
+        await trx<Users>("users")
+          .where("id", resetToken.user_id)
+          .update({ password: hashedPassword });
+
+        await trx("password_reset_tokens")
+          .where("user_id", resetToken.user_id)
+          .delete();
+      });
+    } catch (error) {
+      if (error instanceof AppError) {
+        throw error;
+      }
+      throw new AppError("Falha ao redefinir a senha", 500, error);
     }
-
-    const now = new Date();
-    if (new Date(resetToken.expires_at) < now) {
-      throw new Error("Token expirado.");
-    }
-
-    const hashedPassword = await hash(newPassword, 8);
-
-    await db<Users>("users")
-      .where("id", resetToken.user_id)
-      .update({ password: hashedPassword });
-
-    await db("password_reset_tokens")
-      .where("user_id", resetToken.user_id)
-      .delete();
   }
 }
