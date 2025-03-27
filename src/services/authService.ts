@@ -13,6 +13,7 @@ import { PasswordResetTokens } from "@database/models/passwordResetTokens.ts";
 import { Users } from "@database/models/users.ts";
 import "dotenv/config";
 import sgMail from "@sendgrid/mail";
+import { AppError } from "utils.ts/appError.ts";
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
 
@@ -113,27 +114,39 @@ export class AuthService implements IAuthService {
   }
 
   async resetPassword(token: string, newPassword: string): Promise<void> {
-    const resetToken = await db<PasswordResetTokens>("password_reset_tokens")
-      .where("token", token)
-      .first();
+    try {
+      const resetToken = await db<PasswordResetTokens>("password_reset_tokens")
+        .where("token", token)
+        .first();
 
-    if (!resetToken) {
-      throw new Error("Token inválido.");
+      if (!resetToken) {
+        throw new AppError(
+          "Token de redefinição inválido ou já utilizado",
+          404
+        );
+      }
+
+      const now = new Date();
+      if (new Date(resetToken.expires_at) < now) {
+        throw new AppError("Token de redefinição expirado", 410);
+      }
+
+      const hashedPassword = await hash(newPassword, 8);
+
+      await db.transaction(async (trx) => {
+        await trx<Users>("users")
+          .where("id", resetToken.user_id)
+          .update({ password: hashedPassword });
+
+        await trx("password_reset_tokens")
+          .where("user_id", resetToken.user_id)
+          .delete();
+      });
+    } catch (error) {
+      if (error instanceof AppError) {
+        throw error;
+      }
+      throw new AppError("Falha ao redefinir a senha", 500, error);
     }
-
-    const now = new Date();
-    if (new Date(resetToken.expires_at) < now) {
-      throw new Error("Token expirado.");
-    }
-
-    const hashedPassword = await hash(newPassword, 8);
-
-    await db<Users>("users")
-      .where("id", resetToken.user_id)
-      .update({ password: hashedPassword });
-
-    await db("password_reset_tokens")
-      .where("user_id", resetToken.user_id)
-      .delete();
   }
 }

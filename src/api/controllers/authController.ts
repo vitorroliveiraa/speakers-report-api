@@ -6,6 +6,7 @@ import {
   requestUserSchema,
 } from "validators/userValidator.ts";
 import z from "zod";
+import { AppError } from "utils.ts/appError.ts";
 
 export class AuthController {
   constructor(private authService: IAuthService) {}
@@ -75,8 +76,39 @@ export class AuthController {
 
       res.status(200).json({ message: "Senha redefinida com sucesso." }).send();
     } catch (error) {
-      console.error("🐛", error);
-      res.status(500).json({ message: "" });
+      console.log("Erro no reset de senha:", error);
+
+      if (error instanceof z.ZodError) {
+        // Tratamento específico para erros de validação Zod
+        const errors = error.errors.map((err) => ({
+          field: err.path.join("."),
+          message: err.message,
+        }));
+        return res.status(400).json({
+          error: "ValidationError",
+          message: "Erro de validação dos dados",
+          details: errors,
+        });
+      }
+
+      if (error instanceof AppError) {
+        return res.status(error.statusCode).json({
+          error: error.name,
+          message: error.message,
+          ...(process.env.NODE_ENV === "development" && {
+            details: error.stack,
+          }),
+        });
+      }
+
+      // Erro não esperado
+      return res.status(500).json({
+        error: "InternalServerError",
+        message: "Ocorreu um erro inesperado ao redefinir a senha",
+        ...(process.env.NODE_ENV === "development" && {
+          details: (error as Error).stack,
+        }),
+      });
     }
   }
 }
