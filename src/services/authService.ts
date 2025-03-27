@@ -6,7 +6,6 @@ import { AuthDTO } from "types/IAuthDTO.ts";
 import { UserChangePasswordDTO } from "types/IUserDTO.ts";
 import { hash } from "bcrypt";
 import db from "../database";
-import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 import { PasswordResetTokens } from "@database/models/passwordResetTokens.ts";
@@ -89,12 +88,22 @@ export class AuthService implements IAuthService {
 
     const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
 
-    const msg = {
-      to: user.email,
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT),
+      secure: process.env.SMTP_SECURE === "true",
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+
+    await transporter.sendMail({
       from: {
         name: "Suporte - LDS Toolkit",
-        email: process.env.EMAIL_FROM!,
+        address: process.env.SMTP_USER!,
       },
+      to: user.email,
       subject: "Redefinição de senha",
       html: `
         <p>Olá, ${user.name}!</p>
@@ -102,15 +111,7 @@ export class AuthService implements IAuthService {
         <a href="${resetLink}">${resetLink}</a>
         <p>Se você não solicitou essa alteração, ignore este e-mail.</p>
       `,
-    };
-
-    try {
-      await sgMail.send(msg);
-      console.log("E-mail de redefinição enviado com sucesso!");
-    } catch (error) {
-      console.error("Erro ao enviar e-mail:", error);
-      throw new Error("Falha ao enviar e-mail de redefinição.");
-    }
+    });
   }
 
   async resetPassword(token: string, newPassword: string): Promise<void> {
