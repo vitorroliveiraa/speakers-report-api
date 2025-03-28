@@ -2,7 +2,6 @@ import { IAuthService } from "types/IAuthService.ts";
 import { Request, Response } from "express";
 import {
   changePasswordSchema,
-  forgotPasswordSchema,
   requestUserSchema,
 } from "validators/userValidator.ts";
 import z from "zod";

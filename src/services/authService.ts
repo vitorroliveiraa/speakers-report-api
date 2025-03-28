@@ -11,10 +11,7 @@ import nodemailer from "nodemailer";
 import { PasswordResetTokens } from "@database/models/passwordResetTokens.ts";
 import { Users } from "@database/models/users.ts";
 import "dotenv/config";
-import sgMail from "@sendgrid/mail";
 import { AppError } from "utils.ts/appError.ts";
-
-sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
 
 export class AuthService implements IAuthService {
   async login(data: AuthDTO): Promise<AuthResponse> {
