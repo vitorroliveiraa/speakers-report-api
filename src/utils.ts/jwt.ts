@@ -5,7 +5,6 @@ import {
   TokenExpiredError,
   JsonWebTokenError,
 } from "jsonwebtoken";
-import { CustomJwtPayload } from "types/IUserDTO.ts";
 
 export function generateToken(payload: object): string {
   return sign(payload, process.env.JWT_SECRET!, {

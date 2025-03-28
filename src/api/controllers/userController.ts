@@ -1,11 +1,8 @@
 import { Request, Response } from "express";
 import { IUserService } from "../../types/IUserService.ts";
 import {
-  changePasswordSchema,
   createWardAndUserSchema,
-  forgotPasswordSchema,
   pdfUploadSchema,
-  requestUserSchema,
 } from "../../validators/userValidator.ts";
 import { z } from "zod";
 import { validatePDFStructure } from "utils.ts/validatePDFStructure.ts";
