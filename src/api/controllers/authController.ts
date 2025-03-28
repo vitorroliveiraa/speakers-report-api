@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import {
   changePasswordSchema,
   requestUserSchema,
+  resetPasswordSchema,
 } from "validators/userValidator.ts";
 import z from "zod";
 import { AppError } from "utils.ts/appError.ts";
@@ -68,9 +69,9 @@ export class AuthController {
   }
 
   async resetPassword(req: Request, res: Response) {
-    const { token, newPassword } = req.body;
-
     try {
+      const { token, newPassword } = resetPasswordSchema.parse(req.body);
+      
       await this.authService.resetPassword(token, newPassword);
 
       res.status(200).json({ message: "Senha redefinida com sucesso." }).send();
@@ -78,7 +79,6 @@ export class AuthController {
       console.log("Erro no reset de senha:", error);
 
       if (error instanceof z.ZodError) {
-        // Tratamento específico para erros de validação Zod
         const errors = error.errors.map((err) => ({
           field: err.path.join("."),
           message: err.message,
@@ -100,7 +100,6 @@ export class AuthController {
         });
       }
 
-      // Erro não esperado
       return res.status(500).json({
         error: "InternalServerError",
         message: "Ocorreu um erro inesperado ao redefinir a senha",
