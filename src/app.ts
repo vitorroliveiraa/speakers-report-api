@@ -3,12 +3,12 @@ import cors from "cors";
 import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
 
-
 import dotenv from "dotenv";
 
 import knex from "./database/index.ts";
 import path from "path";
 import { router } from "./api/routes/index.ts";
+import { authMiddleware } from "middlewares/auth.ts";
 
 const dotenvFilepath = path.resolve(process.cwd(), ".env");
 dotenv.config({ path: dotenvFilepath });
@@ -16,13 +16,13 @@ dotenv.config({ path: dotenvFilepath });
 const corsOptions = {
   origin: [process.env.FRONTEND_URL!],
   methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
-}
+  credentials: true,
+};
 const limiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 100 });
 
 const app = express();
 app.use(cors(corsOptions));
-app.use(limiter)
+app.use(limiter);
 
 app.use(json());
 app.use(urlencoded({ extended: true }));
@@ -34,6 +34,7 @@ type Speakers = {
 };
 interface ISpeakersReq {
   sacrament_meeting_date: Date;
+  ward_id: number;
   speakers: Speakers[];
 }
 
@@ -41,8 +42,9 @@ app.use(router);
 
 app.post(
   "/speakers/insert",
+  authMiddleware,
   async (req: Request<{}, {}, ISpeakersReq>, res: Response) => {
-    const { sacrament_meeting_date, speakers } = req.body;
+    const { sacrament_meeting_date, ward_id, speakers } = req.body;
 
     const sacramentMeetingDate = sacrament_meeting_date;
 
@@ -61,14 +63,14 @@ app.post(
       await knex.transaction(async (trx) => {
         const insertValues = speakers
           .map((speaker) => {
-            return `('${sacrament_meeting_date}', '${speaker.member_id}', '${speaker.speaker_position}')`;
+            return `('${sacrament_meeting_date}', '${speaker.member_id}', '${speaker.speaker_position}', '${ward_id}')`;
           })
           .join(", ");
 
         const insertQuery = `
-        INSERT INTO speakers (sacrament_meeting_date, member_id, speaker_position)
-        VALUES ${insertValues}
-      `;
+          INSERT INTO speakers (sacrament_meeting_date, member_id, speaker_position, ward_id)
+          VALUES ${insertValues}
+        `;
 
         await trx.raw(insertQuery);
       });
@@ -83,14 +85,23 @@ app.post(
   }
 );
 
-app.get("/speakers", async (req: Request, res: Response) => {
+app.get("/speakers", authMiddleware, async (req: Request, res: Response) => {
   try {
+    const { ward_id: wardId } = req.user;
+
+    if (!wardId) {
+      return res
+        .status(400)
+        .json({ error: "O parâmetro wardId é obrigatório." });
+    }
+
     const sql = `
       WITH LastSpeech AS (
         SELECT
           cm.name,
           s.sacrament_meeting_date AS last_speech_date,
-          s.speaker_position
+          s.speaker_position,
+          cm.ward_id
         FROM
           church_members cm
         JOIN
@@ -100,25 +111,29 @@ app.get("/speakers", async (req: Request, res: Response) => {
             SELECT MAX(sacrament_meeting_date)
             FROM speakers
             WHERE member_id = cm.id
+            AND ward_id = cm.ward_id
           )
+          AND cm.ward_id = ?
       )
       SELECT
         name,
         TO_CHAR(last_speech_date, 'DD/MM/YYYY') AS last_speech_date,
         speaker_position,
         (SELECT COUNT(*)
-         FROM generate_series(
-           last_speech_date,
-           NOW(), 
-           interval '1 week'
-         ) gs
-         WHERE EXTRACT(DOW FROM gs) = 0 -- Somente domingos
+          FROM generate_series(
+            last_speech_date,
+            NOW(), 
+            interval '1 week'
+          ) gs
+          WHERE EXTRACT(DOW FROM gs) = 0 -- Somente domingos
         ) AS sundays_since_last_speech
       FROM
-        LastSpeech;
+        LastSpeech
+      WHERE
+        ward_id = ?;
     `;
 
-    const result = await knex.raw(sql);
+    const result = await knex.raw(sql, [wardId, wardId]);
 
     res.status(200).json(result.rows);
   } catch (error) {
@@ -127,16 +142,33 @@ app.get("/speakers", async (req: Request, res: Response) => {
   }
 });
 
-app.get("/church_members", async (req: Request, res: Response) => {
-  try {
-    const result = await knex.select().from("church_members");
+app.get(
+  "/church_members",
+  authMiddleware,
+  async (req: Request, res: Response) => {
+    try {
+      console.log(req.user);
 
-    res.status(200).json(result);
-  } catch (error) {
-    console.log("Erro ao retornar os membros:", error);
-    res.status(500).json({ error: "Erro ao retornar os membros" });
+      const { ward_id: wardId } = req.user;
+
+      if (!wardId) {
+        return res
+          .status(400)
+          .json({ error: "O parâmetro wardId é obrigatório." });
+      }
+
+      const result = await knex
+        .select()
+        .from("church_members")
+        .where("ward_id", wardId);
+
+      res.status(200).json(result);
+    } catch (error) {
+      console.log("Erro ao retornar os membros:", error);
+      res.status(500).json({ error: "Erro ao retornar os membros" });
+    }
   }
-});
+);
 
 app.use((err: Error, req: Request, res: Response, next: Function) => {
   if (err.message === "Acesso não permitido por CORS") {
