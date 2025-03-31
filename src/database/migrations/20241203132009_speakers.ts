@@ -7,10 +7,17 @@ export async function up(knex: Knex): Promise<void> {
       table.date("sacrament_meeting_date");
       table.integer("member_id", 100).unsigned().notNullable();
       table.integer("speaker_position", 100);
+      table.integer("ward_id").unsigned().notNullable();
       table
         .foreign("member_id")
         .references("id")
         .inTable("church_members")
+        .onDelete("CASCADE")
+        .onUpdate("CASCADE");
+      table
+        .foreign("ward_id")
+        .references("id")
+        .inTable("wards")
         .onDelete("CASCADE")
         .onUpdate("CASCADE");
     })
