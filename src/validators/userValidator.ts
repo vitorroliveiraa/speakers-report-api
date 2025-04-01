@@ -40,19 +40,24 @@ export const createWardAndUserSchema = z.object({
 });
 
 export const changePasswordSchema = z.object({
-  oldPassword: z.string({
-    required_error: "A senha é obrigatória",
-    invalid_type_error: "A senha deve ser uma string válida",
-  }),
+  oldPassword: z
+    .string({
+      required_error: "A senha é obrigatória",
+      invalid_type_error: "A senha deve ser uma string válida",
+    })
+    .refine((password) => /[a-zA-Z]/.test(password), {
+      message: "A senha deve conter pelo menos uma letra.",
+    }),
   newPassword: z
     .string({
       required_error: "A senha é obrigatória",
       invalid_type_error: "A senha deve ser uma string válida",
     })
     .min(6, "É necessário no mínimo 6 caracteres.")
-    .refine((password) => /[a-zA-Z]/.test(password), {
-      message: "A senha deve conter pelo menos uma letra.",
-    }),
+    .regex(
+      /^(?=.*[A-Za-z])(?=.*\d).{6,}$/,
+      "A senha deve conter pelo menos uma letra e um número"
+    ),
 });
 
 export const requestUserSchema = z.object({
@@ -79,7 +84,10 @@ export const resetPasswordSchema = z.object({
       required_error: "O token é obrigatório",
       invalid_type_error: "O token deve ser uma string válida",
     })
-    .min(1, { message: "O token é obrigatório" }),
+    .length(64, { message: "O token deve ter exatamente 64 caracteres" })
+    .regex(/^[0-9a-fA-F]+$/, {
+      message: "O token deve conter apenas caracteres hexadecimais",
+    }),
   newPassword: z
     .string({
       required_error: "A nova senha é obrigatório.",

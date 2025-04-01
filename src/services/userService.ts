@@ -1,10 +1,8 @@
-import { verifyPassword } from "utils.ts/verifyPassword.ts";
 import knex from "../database/index.ts";
 import { IChurchMembers, UserDTO, WardDTO } from "../types/IUserDTO.ts";
 import { IUserService } from "../types/IUserService.ts";
 import { hash } from "bcrypt";
 import pdfParse from "pdf-parse";
-import { ChurchMembers } from "@database/models/churchMembers.ts";
 
 export class UserService implements IUserService {
   async create(
