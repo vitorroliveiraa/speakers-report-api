@@ -9,6 +9,10 @@ import knex from "./database/index.ts";
 import path from "path";
 import { router } from "./api/routes/index.ts";
 import { authMiddleware } from "middlewares/auth.ts";
+import pinoHttp from "pino-http";
+import logger from "utils.ts/logger.ts";
+import { errorHandler } from "middlewares/errorMiddleware.ts";
+import { RateLimitError } from "utils.ts/appError.ts";
 
 const dotenvFilepath = path.resolve(process.cwd(), ".env");
 dotenv.config({ path: dotenvFilepath });
@@ -18,7 +22,15 @@ const corsOptions = {
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true,
 };
-const limiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 100 });
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 100,
+  handler: (req, res) => {
+    const error = new RateLimitError(15 * 60);
+    res.set("Retry-After", error.retryAfter.toString());
+    throw error;
+  },
+});
 
 const app = express();
 app.use(cors(corsOptions));
@@ -39,6 +51,13 @@ interface ISpeakersReq {
 }
 
 app.use(router);
+app.use(
+  pinoHttp({
+    logger,
+    customSuccessMessage: (req, res) =>
+      `Request ${req.method} ${req.url} - ${res.statusCode}`,
+  })
+);
 
 app.post(
   "/speakers/insert",
@@ -170,12 +189,6 @@ app.get(
   }
 );
 
-app.use((err: Error, req: Request, res: Response, next: Function) => {
-  if (err.message === "Acesso não permitido por CORS") {
-    res.status(403).json({ message: "Acesso não permitido por CORS" });
-  } else {
-    next(err);
-  }
-});
+app.use(errorHandler);
 
 export default app;
