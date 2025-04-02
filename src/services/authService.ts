@@ -11,15 +11,31 @@ import nodemailer from "nodemailer";
 import { PasswordResetTokens } from "@database/models/passwordResetTokens.ts";
 import { Users } from "@database/models/users.ts";
 import "dotenv/config";
-import { AppError } from "utils.ts/appError.ts";
+import {
+  GoneError,
+  NotFoundError,
+  UnauthorizedError,
+} from "utils.ts/appError.ts";
+import logger from "utils.ts/logger.ts";
 
 export class AuthService implements IAuthService {
   async login(data: AuthDTO): Promise<AuthResponse> {
+    logger.info({ email: data.email }, "Processando login");
+
     const user = await knex("users").where("email", data.email).first();
-    if (!user) throw new Error("O email informado não existe");
+    if (!user) {
+      logger.warn(
+        { email: data.email },
+        "Tentativa de login com e-mail inexistente"
+      );
+      throw new NotFoundError("O email informado não existe");
+    }
 
     const samePasswords = await verifyPassword(data.password, user.password);
-    if (!samePasswords) throw new Error("Usuário ou senha inválido");
+    if (!samePasswords) {
+      logger.warn({ email: data.email, userId: user.id }, "Senha inválida");
+      throw new UnauthorizedError("Usuário ou senha inválido");
+    }
 
     const token = generateToken({
       id: user.id,
@@ -29,6 +45,11 @@ export class AuthService implements IAuthService {
       nrm: user.member_number,
       role: user.role,
     });
+
+    logger.info(
+      { userId: user.id, email: user.email },
+      "Token gerado com sucesso"
+    );
 
     return {
       token,
@@ -52,7 +73,7 @@ export class AuthService implements IAuthService {
     const user = await knex("users").where("id", userId).first();
 
     if (!user || !(await verifyPassword(user.password, oldPassword))) {
-      throw new Error("Invalid current password");
+      throw new UnauthorizedError("Invalid current password");
     }
 
     const hashedNewPassword = await hash(newPassword, 8);
@@ -69,7 +90,7 @@ export class AuthService implements IAuthService {
       .first();
 
     if (!user?.id) {
-      throw new Error("Usuário não encontrado.");
+      throw new NotFoundError("Usuário não encontrado.");
     }
 
     const token = crypto.randomBytes(32).toString("hex");
@@ -112,39 +133,29 @@ export class AuthService implements IAuthService {
   }
 
   async resetPassword(token: string, newPassword: string): Promise<void> {
-    try {
-      const resetToken = await db<PasswordResetTokens>("password_reset_tokens")
-        .where("token", token)
-        .first();
+    const resetToken = await db<PasswordResetTokens>("password_reset_tokens")
+      .where("token", token)
+      .first();
 
-      if (!resetToken) {
-        throw new AppError(
-          "Token de redefinição inválido ou já utilizado",
-          404
-        );
-      }
-
-      const now = new Date();
-      if (new Date(resetToken.expires_at) < now) {
-        throw new AppError("Token de redefinição expirado", 410);
-      }
-
-      const hashedPassword = await hash(newPassword, 8);
-
-      await db.transaction(async (trx) => {
-        await trx<Users>("users")
-          .where("id", resetToken.user_id)
-          .update({ password: hashedPassword });
-
-        await trx("password_reset_tokens")
-          .where("user_id", resetToken.user_id)
-          .delete();
-      });
-    } catch (error) {
-      if (error instanceof AppError) {
-        throw error;
-      }
-      throw new AppError("Falha ao redefinir a senha", 500, error);
+    if (!resetToken) {
+      throw new NotFoundError("Token de redefinição inválido ou já utilizado");
     }
+
+    const now = new Date();
+    if (new Date(resetToken.expires_at) < now) {
+      throw new GoneError("Token de redefinição expirado");
+    }
+
+    const hashedPassword = await hash(newPassword, 8);
+
+    await db.transaction(async (trx) => {
+      await trx<Users>("users")
+        .where("id", resetToken.user_id)
+        .update({ password: hashedPassword });
+
+      await trx("password_reset_tokens")
+        .where("user_id", resetToken.user_id)
+        .delete();
+    });
   }
 }
