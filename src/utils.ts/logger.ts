@@ -16,4 +16,12 @@ const logger = pino({
       : undefined,
 });
 
+export const authControllerLogger = logger.child({ module: "AuthController" });
+export const authServiceLogger = logger.child({ module: "AuthService" });
+
+export const userControllerLogger = logger.child({ module: "UserController" });
+export const userServiceLogger = logger.child({ module: "UserService" });
+
+export const utilsLogger = logger.child({ module: "Utils" });
+
 export default logger;
