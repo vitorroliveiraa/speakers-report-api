@@ -11,35 +11,28 @@ export class UserService implements IUserService {
   ): Promise<void> {
     const trx = await knex.transaction();
 
-    try {
-      const existingUser = await trx("users")
-        .where({ email: userData.email })
-        .first();
-      if (existingUser) throw new Error("O email informado já está em uso");
+    const existingUser = await trx("users")
+      .where({ email: userData.email })
+      .first();
+    if (existingUser) throw new Error("O email informado já está em uso");
 
-      const [wardIdObj] = await trx("wards").insert(wardData).returning("id");
+    const [wardIdObj] = await trx("wards").insert(wardData).returning("id");
 
-      const passwordHash = await hash(userData.password, 8);
+    const passwordHash = await hash(userData.password, 8);
 
-      const user = {
-        ...userData,
-        ward_id: wardIdObj.id,
-      };
+    const user = {
+      ...userData,
+      ward_id: wardIdObj.id,
+    };
 
-      await trx("users").insert({
-        ...user,
-        password: passwordHash,
-        created_at: new Date(),
-        updated_at: new Date(),
-      });
+    await trx("users").insert({
+      ...user,
+      password: passwordHash,
+      created_at: new Date(),
+      updated_at: new Date(),
+    });
 
-      await trx.commit();
-    } catch (error) {
-      await trx.rollback();
-      if (error instanceof Error)
-        throw new Error("Erro ao criar ward e usuário: " + error.message);
-      else console.log("🐛 Erro desconhecido:", error);
-    }
+    await trx.commit();
   }
 
   async getAllUsers(): Promise<UserDTO[]> {
@@ -87,35 +80,30 @@ export class UserService implements IUserService {
   }
 
   async createChurchMembers(wardId: number, members: IChurchMembers[]) {
-    try {
-      const existingMembers = await knex("church_members")
-        .where({ ward_id: wardId })
-        .select("id", "name");
+    const existingMembers = await knex("church_members")
+      .where({ ward_id: wardId })
+      .select("id", "name");
 
-      const existingNamesSet = new Set(
-        existingMembers.map((member) => member.name)
-      );
+    const existingNamesSet = new Set(
+      existingMembers.map((member) => member.name)
+    );
 
-      const newNamesSet = new Set(members.map((member) => member.name));
+    const newNamesSet = new Set(members.map((member) => member.name));
 
-      const membersToAdd = members.filter(
-        (member) => !existingNamesSet.has(member.name)
-      );
+    const membersToAdd = members.filter(
+      (member) => !existingNamesSet.has(member.name)
+    );
 
-      const membersToRemove = existingMembers
-        .filter((member) => !newNamesSet.has(member.name))
-        .map((member) => member.id);
+    const membersToRemove = existingMembers
+      .filter((member) => !newNamesSet.has(member.name))
+      .map((member) => member.id);
 
-      //!QUANDO NÃO INSERIR, LANÇAR ERRO
-      if (membersToAdd.length > 0) {
-        await knex("church_members").insert(membersToAdd);
-      }
+    if (membersToAdd.length > 0) {
+      await knex("church_members").insert(membersToAdd);
+    }
 
-      if (membersToRemove.length > 0) {
-        await knex("church_members").whereIn("id", membersToRemove).del();
-      }
-    } catch (error) {
-      console.error("❌ Erro ao inserir usuários:", error);
+    if (membersToRemove.length > 0) {
+      await knex("church_members").whereIn("id", membersToRemove).del();
     }
   }
 }
