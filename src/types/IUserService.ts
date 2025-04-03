@@ -8,9 +8,5 @@ export interface IUserService {
     userData: Omit<UserDTO, "id" | "ward_id" | "created_at" | "updated_at">
   ): Promise<void>;
   getAllUsers(): Promise<Users[]>;
-  extractNamesFromPDF(
-    wardId: number,
-    buffer: Buffer
-  ): Promise<IChurchMembers[]>;
   createChurchMembers(wardId: number, members: IChurchMembers[]): Promise<void>;
 }

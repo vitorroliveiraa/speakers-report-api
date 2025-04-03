@@ -5,7 +5,7 @@ import {
   requestUserSchema,
   resetPasswordSchema,
 } from "validators/userValidator.ts";
-import logger from "utils.ts/logger.ts";
+import { authControllerLogger as logger } from "utils.ts/logger.ts";
 
 export class AuthController {
   constructor(private authService: IAuthService) {}
@@ -24,11 +24,14 @@ export class AuthController {
     const { oldPassword, newPassword } = changePasswordSchema.parse(req.body);
     const { id: userId } = requestUserSchema.parse(req.user);
 
+    logger.info({ userId }, "Solicitação para mudança de senha recebida");
+
     await this.authService.changePassword({
       oldPassword,
       newPassword,
       userId,
     });
+    logger.info({ userId }, "Mudança de senha bem-sucedida");
 
     res.status(200).json({ message: "Password updated successfully" });
   }
