@@ -16,7 +16,7 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from "utils.ts/appError.ts";
-import logger from "utils.ts/logger.ts";
+import { authServiceLogger as logger } from "utils.ts/logger.ts";
 
 export class AuthService implements IAuthService {
   async login(data: AuthDTO): Promise<AuthResponse> {
@@ -70,19 +70,26 @@ export class AuthService implements IAuthService {
     newPassword,
     userId,
   }: UserChangePasswordDTO): Promise<void> {
+    logger.info({ userId }, "Processando mudança de senha");
+
     const user = await knex("users").where("id", userId).first();
 
     if (!user || !(await verifyPassword(user.password, oldPassword))) {
-      throw new UnauthorizedError("Invalid current password");
+      logger.warn({ userId }, "Tentativa de mudança com senha atual errada");
+      throw new UnauthorizedError("Senha atual inválida");
     }
 
     const hashedNewPassword = await hash(newPassword, 8);
     await knex("users")
       .where("id", userId)
       .update({ password: hashedNewPassword });
+
+    logger.info({ userId }, "Senha redefinida com sucesso");
   }
 
   async forgotPassword(memberNumber: string): Promise<void> {
+    logger.info({ memberNumber }, "Processando recuperação de senha");
+
     const user = await db
       .select("*")
       .from("users")
@@ -90,6 +97,10 @@ export class AuthService implements IAuthService {
       .first();
 
     if (!user?.id) {
+      logger.warn(
+        { memberNumber },
+        "Tentativa de recuperação com número inválido"
+      );
       throw new NotFoundError("Usuário não encontrado.");
     }
 
@@ -130,21 +141,35 @@ export class AuthService implements IAuthService {
         <p>Se você não solicitou essa alteração, ignore este e-mail.</p>
       `,
     });
+
+    logger.info(
+      { userId: user.id, email: user.email },
+      "E-mail de recuperação enviado"
+    );
   }
 
   async resetPassword(token: string, newPassword: string): Promise<void> {
+    logger.info({ token }, "Verificando token de redefinição");
+
     const resetToken = await db<PasswordResetTokens>("password_reset_tokens")
       .where("token", token)
       .first();
 
     if (!resetToken) {
+      logger.warn({ token }, "Tentativa de redefinição com token inválido");
       throw new NotFoundError("Token de redefinição inválido ou já utilizado");
     }
 
     const now = new Date();
     if (new Date(resetToken.expires_at) < now) {
+      logger.warn({ token }, "Tentativa de redefinição com token expirado");
       throw new GoneError("Token de redefinição expirado");
     }
+
+    logger.info(
+      { userId: resetToken.user_id },
+      "Token válido, redefinindo senha"
+    );
 
     const hashedPassword = await hash(newPassword, 8);
 
@@ -157,5 +182,7 @@ export class AuthService implements IAuthService {
         .where("user_id", resetToken.user_id)
         .delete();
     });
+
+    logger.info({ userId: resetToken.user_id }, "Senha redefinida com sucesso");
   }
 }
