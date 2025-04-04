@@ -24,6 +24,7 @@
     "@types/crypto-js": "^4.2.2",
     "@types/nodemailer": "^6.4.17",
     "@types/pdf-parse": "^1.1.4",
+    "@types/pino-http": "^5.8.4",
     "axios": "^1.7.7",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",

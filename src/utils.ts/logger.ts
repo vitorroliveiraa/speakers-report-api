@@ -1,5 +1,4 @@
 import pino from "pino";
-import { colorizerFactory } from "pino-pretty";
 
 const logger = pino({
   level: process.env.NODE_ENV === "development" ? "debug" : "info",
@@ -21,6 +20,13 @@ export const authServiceLogger = logger.child({ module: "AuthService" });
 
 export const userControllerLogger = logger.child({ module: "UserController" });
 export const userServiceLogger = logger.child({ module: "UserService" });
+
+export const speakersControllerLogger = logger.child({
+  module: "SpeakersController",
+});
+export const speakersServiceLogger = logger.child({
+  module: "SpeakersService",
+});
 
 export const utilsLogger = logger.child({ module: "Utils" });
 

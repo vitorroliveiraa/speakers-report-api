@@ -39,17 +39,6 @@ app.use(limiter);
 app.use(json());
 app.use(urlencoded({ extended: true }));
 app.use(helmet());
-
-type Speakers = {
-  member_id: number;
-  speaker_position: number;
-};
-interface ISpeakersReq {
-  sacrament_meeting_date: Date;
-  ward_id: number;
-  speakers: Speakers[];
-}
-
 app.use(router);
 app.use(
   pinoHttp({
@@ -57,51 +46,6 @@ app.use(
     customSuccessMessage: (req, res) =>
       `Request ${req.method} ${req.url} - ${res.statusCode}`,
   })
-);
-
-app.post(
-  "/speakers/insert",
-  authMiddleware,
-  async (req: Request<{}, {}, ISpeakersReq>, res: Response) => {
-    const { sacrament_meeting_date, ward_id, speakers } = req.body;
-
-    const sacramentMeetingDate = sacrament_meeting_date;
-
-    try {
-      const exists = await knex.raw(
-        "SELECT 1 FROM speakers WHERE sacrament_meeting_date = ? LIMIT 1",
-        [sacramentMeetingDate]
-      );
-
-      if (exists.rowCount > 0) {
-        return res
-          .status(409)
-          .json({ error: "Já existe um registro nessa data." });
-      }
-
-      await knex.transaction(async (trx) => {
-        const insertValues = speakers
-          .map((speaker) => {
-            return `('${sacrament_meeting_date}', '${speaker.member_id}', '${speaker.speaker_position}', '${ward_id}')`;
-          })
-          .join(", ");
-
-        const insertQuery = `
-          INSERT INTO speakers (sacrament_meeting_date, member_id, speaker_position, ward_id)
-          VALUES ${insertValues}
-        `;
-
-        await trx.raw(insertQuery);
-      });
-
-      res.status(201).json({ message: "Registro inserido com sucesso." });
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        console.log("Erro ao inserir registro:", error.message);
-        res.status(500).json({ error: "Erro ao inserir registro" });
-      }
-    }
-  }
 );
 
 app.get("/speakers", authMiddleware, async (req: Request, res: Response) => {
