@@ -1,4 +1,8 @@
-import { ISpeakersService, Speakers } from "types/ISpeakersService.ts";
+import {
+  ISpeakersService,
+  ListSpeakers,
+  Speakers,
+} from "types/ISpeakersService.ts";
 import knex from "../database/index.ts";
 import { ConflictError } from "utils.ts/appError.ts";
 import { speakersServiceLogger as logger } from "utils.ts/logger.ts";
@@ -45,5 +49,51 @@ export class SpeakersService implements ISpeakersService {
         throw error;
       }
     }
+  }
+
+  async listAllSpeakers(wardId: number): Promise<ListSpeakers[]> {
+    logger.info({ wardId }, "Persistência da listagem listagem iniciada.");
+    const sql = `
+      WITH LastSpeech AS (
+      SELECT
+          cm.name,
+          s.sacrament_meeting_date AS last_speech_date,
+          s.speaker_position,
+          cm.ward_id
+        FROM
+          church_members cm
+        JOIN
+          speakers s ON s.member_id = cm.id
+        WHERE
+          s.sacrament_meeting_date = (
+            SELECT MAX(sacrament_meeting_date)
+            FROM speakers
+            WHERE member_id = cm.id
+            AND ward_id = cm.ward_id
+          )
+          AND cm.ward_id = ?
+      )
+      SELECT
+        name,
+        TO_CHAR(last_speech_date, 'DD/MM/YYYY') AS last_speech_date,
+        speaker_position,
+        (SELECT COUNT(*)
+          FROM generate_series(
+            last_speech_date,
+            NOW(), 
+            interval '1 week'
+          ) gs
+          WHERE EXTRACT(DOW FROM gs) = 0 -- Somente domingos
+        ) AS sundays_since_last_speech
+      FROM
+        LastSpeech
+      WHERE
+        ward_id = ?;
+    `;
+
+    const { rows } = await knex.raw(sql, [wardId, wardId]);
+    logger.info({ wardId }, "Discursantes encontrados na persistência.");
+
+    return rows;
   }
 }
