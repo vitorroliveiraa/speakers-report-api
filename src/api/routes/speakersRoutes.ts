@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { authMiddleware } from "middlewares/auth.ts";
-import { SpeakersController } from "api/controllers/speakersControlle.ts";
+import { SpeakersController } from "api/controllers/speakersController";
 import { SpeakersService } from "services/speakersService.ts";
 
 const speakersRoutes = Router();
@@ -11,6 +11,11 @@ speakersRoutes.post(
   "/insert",
   authMiddleware,
   speakersController.create.bind(speakersController)
+);
+speakersRoutes.get(
+  "/",
+  authMiddleware,
+  speakersController.listAllSpeakers.bind(speakersController)
 );
 
 export { speakersRoutes };
