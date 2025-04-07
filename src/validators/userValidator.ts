@@ -60,13 +60,42 @@ export const changePasswordSchema = z.object({
     ),
 });
 
+const allowedRoles = [
+  "Bispo",
+  "1° Conselheiro",
+  "2° Conselheiro",
+  "Secretário da Ala",
+  "Secretário Executivo da Ala",
+] as const;
+
 export const requestUserSchema = z.object({
   id: z
     .number({
-      required_error: "A senha é obrigatória",
-      invalid_type_error: "A senha deve ser um number válido",
+      required_error: "O ID do usuário é obrigatório",
+      invalid_type_error: "O ID do usuário deve ser um número válido",
     })
     .min(1, "O ID do usuário é obrigatório."),
+  name: z.string().min(1, "O nome é obrigatório"),
+  email: z
+    .string({
+      required_error: "O email é obrigatório",
+      invalid_type_error: "O email deve ser uma string válida",
+    })
+    .email("O email deve ser um endereço de email válido"),
+  ward_id: z.number({
+    required_error: "O ID da ala é obrigatório",
+    invalid_type_error: "O ID da ala deve ser um número válido",
+  }),
+  nrm: z.string().min(5, "Número de membro inválido."),
+  role: z.enum(allowedRoles, {
+    errorMap: (issue, ctx) => {
+      return {
+        message: `A role deve ser uma das seguintes: ${allowedRoles.join(
+          ", "
+        )}`,
+      };
+    },
+  }),
 });
 
 export const forgotPasswordSchema = z.object({

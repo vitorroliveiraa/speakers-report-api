@@ -15,8 +15,11 @@ export interface UserChangePasswordDTO {
 
 export interface CustomJwtPayload extends JwtPayload {
   id: number;
+  name: string;
   email: string;
   ward_id: number;
+  nrm: string;
+  role: string;
 }
 
 export interface IChurchMembers {
