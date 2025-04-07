@@ -13,6 +13,7 @@ import pinoHttp from "pino-http";
 import logger from "utils.ts/logger.ts";
 import { errorHandler } from "middlewares/errorMiddleware.ts";
 import { RateLimitError } from "utils.ts/appError.ts";
+import { requestContextMiddleware } from "middlewares/requestContext.ts";
 
 const dotenvFilepath = path.resolve(process.cwd(), ".env");
 dotenv.config({ path: dotenvFilepath });
@@ -33,6 +34,8 @@ const limiter = rateLimit({
 });
 
 const app = express();
+
+app.use(requestContextMiddleware);
 app.use(cors(corsOptions));
 app.use(limiter);
 

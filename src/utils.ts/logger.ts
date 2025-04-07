@@ -1,3 +1,4 @@
+import { getRequestId } from "lib/requestContext.ts";
 import pino from "pino";
 
 const logger = pino({
@@ -13,6 +14,10 @@ const logger = pino({
           },
         }
       : undefined,
+  mixin() {
+    const requestId = getRequestId();
+    return requestId ? { requestId } : {};
+  },
 });
 
 export const authControllerLogger = logger.child({ module: "AuthController" });
