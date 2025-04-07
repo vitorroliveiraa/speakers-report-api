@@ -1,18 +1,17 @@
-import express, { json, urlencoded, Request, Response } from "express";
+import express, { json, urlencoded } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
 
 import dotenv from "dotenv";
 
-import knex from "./database/index.ts";
 import path from "path";
 import { router } from "./api/routes/index.ts";
-import { authMiddleware } from "middlewares/auth.ts";
 import pinoHttp from "pino-http";
 import logger from "utils.ts/logger.ts";
 import { errorHandler } from "middlewares/errorMiddleware.ts";
 import { RateLimitError } from "utils.ts/appError.ts";
+import { requestContextMiddleware } from "middlewares/requestContext.ts";
 
 const dotenvFilepath = path.resolve(process.cwd(), ".env");
 dotenv.config({ path: dotenvFilepath });
@@ -33,6 +32,8 @@ const limiter = rateLimit({
 });
 
 const app = express();
+
+app.use(requestContextMiddleware);
 app.use(cors(corsOptions));
 app.use(limiter);
 
@@ -46,91 +47,6 @@ app.use(
     customSuccessMessage: (req, res) =>
       `Request ${req.method} ${req.url} - ${res.statusCode}`,
   })
-);
-
-app.get("/speakers", authMiddleware, async (req: Request, res: Response) => {
-  try {
-    const { ward_id: wardId } = req.user;
-
-    if (!wardId) {
-      return res
-        .status(400)
-        .json({ error: "O parâmetro wardId é obrigatório." });
-    }
-
-    const sql = `
-      WITH LastSpeech AS (
-        SELECT
-          cm.name,
-          s.sacrament_meeting_date AS last_speech_date,
-          s.speaker_position,
-          cm.ward_id
-        FROM
-          church_members cm
-        JOIN
-          speakers s ON s.member_id = cm.id
-        WHERE
-          s.sacrament_meeting_date = (
-            SELECT MAX(sacrament_meeting_date)
-            FROM speakers
-            WHERE member_id = cm.id
-            AND ward_id = cm.ward_id
-          )
-          AND cm.ward_id = ?
-      )
-      SELECT
-        name,
-        TO_CHAR(last_speech_date, 'DD/MM/YYYY') AS last_speech_date,
-        speaker_position,
-        (SELECT COUNT(*)
-          FROM generate_series(
-            last_speech_date,
-            NOW(), 
-            interval '1 week'
-          ) gs
-          WHERE EXTRACT(DOW FROM gs) = 0 -- Somente domingos
-        ) AS sundays_since_last_speech
-      FROM
-        LastSpeech
-      WHERE
-        ward_id = ?;
-    `;
-
-    const result = await knex.raw(sql, [wardId, wardId]);
-
-    res.status(200).json(result.rows);
-  } catch (error) {
-    console.log("Erro ao retornar os registros:", error);
-    res.status(500).json({ error: "Erro ao retornar os registros" });
-  }
-});
-
-app.get(
-  "/church_members",
-  authMiddleware,
-  async (req: Request, res: Response) => {
-    try {
-      console.log(req.user);
-
-      const { ward_id: wardId } = req.user;
-
-      if (!wardId) {
-        return res
-          .status(400)
-          .json({ error: "O parâmetro wardId é obrigatório." });
-      }
-
-      const result = await knex
-        .select()
-        .from("church_members")
-        .where("ward_id", wardId);
-
-      res.status(200).json(result);
-    } catch (error) {
-      console.log("Erro ao retornar os membros:", error);
-      res.status(500).json({ error: "Erro ao retornar os membros" });
-    }
-  }
 );
 
 app.use(errorHandler);
