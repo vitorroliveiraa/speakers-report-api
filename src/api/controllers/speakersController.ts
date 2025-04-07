@@ -22,11 +22,21 @@ export class SpeakersController {
 
   async listAllSpeakers(req: Request, res: Response) {
     const { ward_id: wardId } = requestUserSchema.parse(req.user);
-    logger.info({ wardId }, "Listagem de discursantes iniciada.");
+    logger.info({ wardId }, "Iniciando listagem de discursantes.");
 
     const result = await this.speakersService.listAllSpeakers(wardId);
 
-    logger.info({ wardId }, "Discursantes listados com sucesso.");
+    logger.info({ wardId }, "Listagem de discursantes concluída.");
+    res.status(200).json(result);
+  }
+
+  async listChurchMembers(req: Request, res: Response) {
+    const { ward_id: wardId } = requestUserSchema.parse(req.user);
+    logger.info({ wardId }, "Iniciando listagem de membros da igreja.");
+
+    const result = await this.speakersService.listChurchMembers(wardId);
+
+    logger.info({ wardId }, "Listagem de membros da igreja conluída.");
     res.status(200).json(result);
   }
 }

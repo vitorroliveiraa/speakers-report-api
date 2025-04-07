@@ -1,4 +1,5 @@
 import {
+  ChurchMembers,
   ISpeakersService,
   ListSpeakers,
   Speakers,
@@ -52,7 +53,7 @@ export class SpeakersService implements ISpeakersService {
   }
 
   async listAllSpeakers(wardId: number): Promise<ListSpeakers[]> {
-    logger.info({ wardId }, "Persistência da listagem listagem iniciada.");
+    logger.info({ wardId }, "Consultando discursantes no banco.");
     const sql = `
       WITH LastSpeech AS (
       SELECT
@@ -92,8 +93,26 @@ export class SpeakersService implements ISpeakersService {
     `;
 
     const { rows } = await knex.raw(sql, [wardId, wardId]);
-    logger.info({ wardId }, "Discursantes encontrados na persistência.");
+    logger.info(
+      { wardId, total: rows.length },
+      "Consulta de discursantes concluída."
+    );
 
     return rows;
+  }
+
+  async listChurchMembers(wardId: number): Promise<ChurchMembers[]> {
+    logger.info({ wardId }, "Consultando membros da igreja no banco.");
+
+    const result = await knex
+      .select()
+      .from("church_members")
+      .where("ward_id", wardId);
+
+    logger.info(
+      { wardId, total: result.length },
+      "Consulta de membros da igreja concluída."
+    );
+    return result;
   }
 }
