@@ -1,0 +1,88 @@
+version: "3.8"
+
+services:
+  # Banco de produção
+  postgres-production:
+    image: postgres:17.4-alpine
+    container_name: speakers-report-db-production
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+    environment:
+      - POSTGRES_USER_FILE=/run/secrets/db_prod_user
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db_prod_password
+      - POSTGRES_DB=speakers-report-prod
+      - PG_SHARED_BUFFERS=1GB
+    secrets:
+      - db_prod_user
+      - db_prod_password
+    volumes:
+      - speakers-report-pg-data-prod:/var/lib/postgresql/data
+    networks:
+      - speakers-internal
+
+  # API de Produção
+  api-production:
+    image: speakers-report-api:1.0.0
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 2GB
+        reservations:
+          cpus: "0.5"
+          memory: 1G
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    environment:
+      NODE_ENV: production
+      DB_HOST: postgres-production
+      DB_PORT: 5432
+      DB_USER_FILE: /run/secrets/db_prod_user
+      DB_PWD_FILE: /run/secrets/db_prod_password
+      DB_NAME: speakers-report-prod
+      API_PORT: 3000
+    secrets:
+      - db_prod_user
+      - db_prod_password
+    networks:
+      - speakers-internal
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # Nginx como reverse proxy
+  nginx-proxy:
+    image: nginx:1.27.4-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/certs:/etc/nginx/certs
+    deploy:
+      mode: global
+    networks:
+      - speakers-internal
+      - speakers-external
+
+volumes:
+  speakers-report-pg-data-prod:
+
+networks:
+  speakers-internal:
+    internal: true
+  speakers-external:
+    driver: overlay
+
+secrets:
+  db_prod_user:
+    external: true
+  db_prod_password:
+    external: true
