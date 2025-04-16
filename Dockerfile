@@ -3,7 +3,7 @@ FROM node:22-alpine3.20 AS builder
 WORKDIR /app
 
 # Copia os arquivos necessários
-COPY package.json package-lock.json ./
+COPY package*.json ./
 RUN npm ci --include=dev
 
 # Copia o restante da aplicação
@@ -18,10 +18,7 @@ FROM node:22-alpine3.20 AS production
 WORKDIR /app
 
 # Copia apenas os artefatos finais
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/.env .env
+COPY --from=builder /app /app
 
 ENV NODE_ENV=production
 
