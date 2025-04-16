@@ -36,8 +36,4 @@ nginx/
 *.key
 
 # Ignorar tudo da pasta src exceto arquivos .ts e os diretórios necessários para runtime (migrations e seeds)
-src/**
-!src/**/*.ts
-!src/database/migrations/**
-!src/database/seeds/**
-!src/database/knexfile.ts
+
