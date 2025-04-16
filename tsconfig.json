@@ -28,8 +28,8 @@
     },
     "include": [
       "src/**/*.ts",
-      "src/database/migrations/**/*.ts",
-      "src/database/seeds/**/*.ts"
+      "src/database/migrations/*.ts",
+      "src/database/seeds/*.ts"
     ],
     "exclude": [
         "node_modules"
