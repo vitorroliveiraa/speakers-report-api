@@ -25,5 +25,7 @@ COPY --from=builder /app/.env .env
 
 ENV NODE_ENV=production
 
-# Aplicar migrations ao iniciar
-CMD ["sh", "-c", "npx knex migrate:latest --knexfile dist/src/database/knexfile.js && node dist/server.js"]
+# Aplicar migrations e iniciar
+COPY entrypoint.sh .
+RUN chmod +x entrypoint.sh
+CMD ["./entrypoint.sh"]

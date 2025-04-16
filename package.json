@@ -4,8 +4,11 @@
   "main": "src/server.ts",
   "scripts": {
     "dev": "NODE_ENV=development tsx watch src/server.ts",
-    "start": "node dist/server.js",
-    "build": "npm run clean && tsup src && npm run migrate:latest",
+    "start": "NODE_ENV=production node dist/server.js",
+    "start:prod": "npx knex migrate:latest --knexfile dist/src/database/knexfile.js && node dist/server.js",
+    "build": "npm run clean && tsup && npm run copy:migrations",
+    "postbuild": "npm run migrate:latest",
+    "copy:migrations": "cp -r src/database/migrations dist/src/database/migrations && cp -r src/database/seeds dist/src/database/seeds",
     "clean": "rm -rf dist",
     "knex": "tsx -r sucrase/register ./node_modules/knex/bin/cli.js",
     "migrate:make": "npm run knex -- migrate:make $1 --knexfile ./src/database/knexfile.ts",
