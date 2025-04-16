@@ -11,7 +11,7 @@ COPY . .
 
 # Faz o build com NODE_ENV=production (sem migration ainda)
 ENV NODE_ENV=production
-RUN npm run build
+RUN npm run build && npm run postbuild
 
 # Etapa de produção
 FROM node:22-alpine3.20 AS production
@@ -25,7 +25,4 @@ COPY --from=builder /app/.env .env
 
 ENV NODE_ENV=production
 
-# Aplicar migrations e iniciar
-COPY entrypoint.sh .
-RUN chmod +x entrypoint.sh
-CMD ["./entrypoint.sh"]
+CMD ["node", "dist/server.js"]
