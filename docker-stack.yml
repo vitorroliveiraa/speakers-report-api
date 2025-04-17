@@ -98,3 +98,7 @@ secrets:
     external: true
   db_prod_password:
     external: true
+  jwt_secret:
+    external: true
+  smtp_pass:
+    external: true
