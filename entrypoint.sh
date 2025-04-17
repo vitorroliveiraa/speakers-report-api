@@ -1,6 +1,18 @@
-#!/bin/sh
-echo "Running migrations..."
+#!/bin/bash
+set -e
+
+# Lê os secrets do Docker Swarm
+DB_USER=$(cat "$DB_USER_FILE")
+DB_PASSWORD=$(cat "$DB_PWD_FILE")
+
+# Espera o banco de dados estar disponível (exemplo simples)
+until PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -c '\q' ; do
+  echo "Esperando pelo banco de dados..."
+  sleep 5
+done
+
+echo "Banco de dados disponível. Executando as migrations..."
 npx knex migrate:latest --knexfile dist/src/database/knexfile.js
 
-echo "Starting server..."
-node dist/server.js
+echo "Migrations concluídas. Iniciando a aplicação..."
+exec node dist/server.js "$@"
