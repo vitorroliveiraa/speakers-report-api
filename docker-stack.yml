@@ -46,9 +46,19 @@ services:
       DB_PWD_FILE: /run/secrets/db_prod_password
       DB_NAME: speakers-report-prod
       API_PORT: 3000
+      FRONTEND_URL: http://localhost:5173
+      JWT_EXPIRE_IN: 1h
+      JWT_SECRET: /run/secrets/jwt_secret
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: 587
+      SMTP_SECURE: false
+      SMTP_USER: avtech.contato@gmail.com
+      SMTP_PASS: /run/secrets/smtp_pass
     secrets:
       - db_prod_user
       - db_prod_password
+      - jwt_secret
+      - smtp_pass
     networks:
       - speakers-internal
     healthcheck:
@@ -56,6 +66,8 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+    depends_on:
+      - postgres-production
 
   # Nginx como reverse proxy
   nginx-proxy:
