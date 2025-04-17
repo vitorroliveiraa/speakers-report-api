@@ -7,8 +7,6 @@
     "start": "NODE_ENV=production node dist/server.js",
     "start:prod": "npx knex migrate:latest --knexfile dist/src/database/knexfile.js && node dist/server.js",
     "build": "npm run clean && tsup",
-    "postbuild": "npm run copy:migrations",
-    "copy:migrations": "mkdir -p dist/src/database && cp -r src/database/migrations dist/src/database/migrations && cp -r src/database/seeds dist/src/database/seeds",
     "clean": "rm -rf dist",
     "knex": "tsx -r sucrase/register ./node_modules/knex/bin/cli.js",
     "migrate:make": "npm run knex -- migrate:make $1 --knexfile ./src/database/knexfile.ts",
