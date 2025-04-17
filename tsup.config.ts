@@ -1,7 +1,11 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: ["./src/server.ts"],
+  entry: [
+    "./src/server.ts",
+    "./src/database/migrations",
+    "./src/database/seeds",
+  ],
   outDir: "dist",
   target: "node16",
   format: ["cjs"],
@@ -17,5 +21,7 @@ export default defineConfig({
     options.alias = {
       "@database": "./src/database",
     };
+
+    options.outbase = "./src";
   },
 });
