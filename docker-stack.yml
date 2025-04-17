@@ -51,7 +51,7 @@ services:
       JWT_SECRET: /run/secrets/jwt_secret
       SMTP_HOST: smtp.gmail.com
       SMTP_PORT: 587
-      SMTP_SECURE: false
+      SMTP_SECURE: "false"
       SMTP_USER: avtech.contato@gmail.com
       SMTP_PASS: /run/secrets/smtp_pass
     secrets:
