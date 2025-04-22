@@ -24,7 +24,7 @@ COPY --from=builder /app/package*.json /app/
 
 #ENV NODE_ENV=production
 # Copia o script de entrada
-COPY entrypoint.sh .
+COPY entrypoint.sh ./entrypoint.sh
 RUN chmod +x entrypoint.sh
 
 ENV NODE_ENV=production

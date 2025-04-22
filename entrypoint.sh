@@ -1,5 +1,5 @@
-#!/bin/bash
-set -e
+#!/bin/sh
+set -ex
 
 # Lê os secrets do Docker Swarm
 DB_USER=$(cat "$DB_USER_FILE")
