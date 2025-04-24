@@ -22,6 +22,9 @@ WORKDIR /app
 COPY --from=builder /app/dist /app/dist
 COPY --from=builder /app/package*.json /app/
 
+# Instala o cliente PostgreSQL
+RUN apk add --no-cache postgresql-client
+
 #ENV NODE_ENV=production
 # Copia o script de entrada
 COPY entrypoint.sh ./entrypoint.sh
