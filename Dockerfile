@@ -20,6 +20,7 @@ WORKDIR /app
 # Copia apenas os artefatos finais
 #COPY --from=builder /app /app
 COPY --from=builder /app/dist /app/dist
+COPY --from=builder /app/node_modules /app/node_modules
 COPY --from=builder /app/package*.json /app/
 
 # Instala o cliente PostgreSQL
