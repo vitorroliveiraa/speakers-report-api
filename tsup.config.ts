@@ -5,6 +5,7 @@ export default defineConfig({
     "./src/server.ts",
     "./src/database/migrations",
     "./src/database/seeds",
+    "./src/database/knexfile.ts",
   ],
   outDir: "dist",
   target: "node16",
