@@ -42,8 +42,8 @@ services:
       NODE_ENV: production
       DB_HOST: postgres-production
       DB_PORT: 5432
-      DB_USER_FILE: /run/secrets/db_prod_user
-      DB_PWD_FILE: /run/secrets/db_prod_password
+      DB_PROD_USER_FILE: /run/secrets/db_prod_user
+      DB_PROD_PWD_FILE: /run/secrets/db_prod_password
       DB_NAME: speakers-report-prod
       API_PORT: 3000
       FRONTEND_URL: http://localhost:5173
