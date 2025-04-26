@@ -12,7 +12,7 @@ until PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -
 done
 
 echo "Banco de dados disponível. Executando as migrations..."
-npx knex migrate:latest --knexfile dist/src/database/knexfile.js
+npx knex migrate:latest --knexfile dist/database/knexfile.js
 
 echo "Migrations concluídas. Iniciando a aplicação..."
 exec node dist/server.js "$@"
