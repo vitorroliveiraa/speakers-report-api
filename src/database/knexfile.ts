@@ -43,11 +43,11 @@ const readSecret = (path: string): string => {
 const connection =
   process.env.NODE_ENV === "production"
     ? {
-        host: process.env.DB_PROD_HOST,
+        host: process.env.DB_HOST,
         port: parseInt(process.env.DB_PORT || "5432"),
         user: readSecret(process.env.DB_PROD_USER_FILE!),
         password: readSecret(process.env.DB_PROD_PWD_FILE!),
-        database: process.env.DB_PROD_NAME,
+        database: process.env.DB_NAME,
         ssl: { rejectUnauthorized: false },
       }
     : {
