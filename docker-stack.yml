@@ -90,7 +90,7 @@ volumes:
 
 networks:
   speakers-internal:
-    internal: overlay
+    driver: overlay
   speakers-external:
     driver: overlay
 
