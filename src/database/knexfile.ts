@@ -48,7 +48,8 @@ const connection =
         user: readSecret(process.env.DB_PROD_USER_FILE!),
         password: readSecret(process.env.DB_PROD_PWD_FILE!),
         database: process.env.DB_NAME,
-        ssl: { rejectUnauthorized: false },
+        ssl:
+          process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : false,
       }
     : {
         host: "localhost",

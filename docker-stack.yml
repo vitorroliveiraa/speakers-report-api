@@ -45,6 +45,7 @@ services:
       DB_PROD_USER_FILE: /run/secrets/db_prod_user
       DB_PROD_PWD_FILE: /run/secrets/db_prod_password
       DB_NAME: speakers-report-prod
+      DB_SSL: "false"
       API_PORT: 3000
       FRONTEND_URL: http://localhost:5173
       JWT_EXPIRE_IN: 1h
