@@ -13,15 +13,13 @@ const baseConfig: Partial<Knex.Config> = {
     extension: process.env.NODE_ENV === "development" ? "ts" : "js",
     directory: path.join(
       process.cwd(),
-      process.env.NODE_ENV === "development"
-        ? "migrations"
-        : "dist/database/migrations"
+      process.env.NODE_ENV === "development" ? "migrations" : "migrations"
     ),
   },
   seeds: {
     directory: path.join(
       process.cwd(),
-      process.env.NODE_ENV === "development" ? "seeds" : "dist/database/seeds"
+      process.env.NODE_ENV === "development" ? "seeds" : "seeds"
     ),
     extension: process.env.NODE_ENV === "development" ? "ts" : "js",
     timestampFilenamePrefix: true,
