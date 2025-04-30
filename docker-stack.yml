@@ -63,11 +63,6 @@ services:
     networks:
       - speakers-internal
       - speakers-external
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
     depends_on:
       - postgres-production
 
