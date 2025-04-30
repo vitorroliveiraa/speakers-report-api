@@ -15,4 +15,7 @@ echo "Banco de dados disponível. Executando as migrations..."
 npx knex migrate:latest --knexfile dist/database/knexfile.js
 
 echo "Migrations concluídas. Iniciando a aplicação..."
+
+echo "Iniciando com NODE_ENV=$NODE_ENV e DB_USER=$DB_USER"
+
 exec node dist/server.js "$@"
