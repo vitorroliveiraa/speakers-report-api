@@ -70,6 +70,8 @@ const knexConfig: KnexConfig = {
       acquireTimeoutMillis: 30000,
       idleTimeoutMillis: 60000,
       reapIntervalMillis: 1000,
+      createRetryIntervalMillis: 200,
+      createTimeoutMillis: 30000,
     },
   },
   production: {
@@ -79,6 +81,11 @@ const knexConfig: KnexConfig = {
       min: 2,
       max: 10,
       acquireTimeoutMillis: 60000,
+      idleTimeoutMillis: 30000, // Tempo máximo que uma conexão pode ficar inativa
+      createRetryIntervalMillis: 1000, // Intervalo entre as tentativas de criar uma nova conexão
+      createTimeoutMillis: 60000, // Tempo máximo para criar uma nova conexão
+      propagateCreateError: false, // Não propaga erros de conexão para evitar quebrar a aplicação
+      reapIntervalMillis: 500, // Verifica conexões com mais frequência
     },
   },
 };
