@@ -85,7 +85,7 @@ const knexConfig: KnexConfig = {
       createRetryIntervalMillis: 1000, // Intervalo entre as tentativas de criar uma nova conexão
       createTimeoutMillis: 60000, // Tempo máximo para criar uma nova conexão
       propagateCreateError: false, // Não propaga erros de conexão para evitar quebrar a aplicação
-      reapIntervalMillis: 500, // Verifica conexões com mais frequência
+      reapIntervalMillis: 1000, // Verifica conexões com mais frequência
     },
   },
 };
