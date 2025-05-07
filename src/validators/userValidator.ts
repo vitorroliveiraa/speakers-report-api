@@ -32,6 +32,10 @@ const wardSchema = z.object({
     invalid_type_error: "O tipo do campo não é válido",
     required_error: "O nome do país é obrigatório",
   }),
+  unitNumber: z.number({
+    required_error: "O Número da Unidade é obrigatório",
+    invalid_type_error: "O Número da Unidade deve ser um número válido",
+  }),
 });
 
 export const createWardAndUserSchema = z.object({
@@ -68,35 +72,37 @@ const allowedRoles = [
   "Secretário Executivo da Ala",
 ] as const;
 
-export const requestUserSchema = z.object({
-  id: z
-    .number({
-      required_error: "O ID do usuário é obrigatório",
-      invalid_type_error: "O ID do usuário deve ser um número válido",
-    })
-    .min(1, "O ID do usuário é obrigatório."),
-  name: z.string().min(1, "O nome é obrigatório"),
-  email: z
-    .string({
-      required_error: "O email é obrigatório",
-      invalid_type_error: "O email deve ser uma string válida",
-    })
-    .email("O email deve ser um endereço de email válido"),
-  ward_id: z.number({
-    required_error: "O ID da ala é obrigatório",
-    invalid_type_error: "O ID da ala deve ser um número válido",
-  }),
-  nrm: z.string().min(5, "Número de membro inválido."),
-  role: z.enum(allowedRoles, {
-    errorMap: (issue, ctx) => {
-      return {
-        message: `A role deve ser uma das seguintes: ${allowedRoles.join(
-          ", "
-        )}`,
-      };
-    },
-  }),
-});
+export const requestUserSchema = z
+  .object({
+    id: z
+      .number({
+        required_error: "O ID do usuário é obrigatório",
+        invalid_type_error: "O ID do usuário deve ser um número válido",
+      })
+      .min(1, "O ID do usuário é obrigatório."),
+    name: z.string().min(1, "O nome é obrigatório"),
+    email: z
+      .string({
+        required_error: "O email é obrigatório",
+        invalid_type_error: "O email deve ser uma string válida",
+      })
+      .email("O email deve ser um endereço de email válido"),
+    ward_id: z.number({
+      required_error: "O ID da ala é obrigatório",
+      invalid_type_error: "O ID da ala deve ser um número válido",
+    }),
+    nrm: z.string().min(5, "Número de membro inválido."),
+    role: z.enum(allowedRoles, {
+      errorMap: (issue, ctx) => {
+        return {
+          message: `A role deve ser uma das seguintes: ${allowedRoles.join(
+            ", "
+          )}`,
+        };
+      },
+    }),
+  })
+  .describe("Schema de validação do usuário na requisição");
 
 export const forgotPasswordSchema = z.object({
   email: z
