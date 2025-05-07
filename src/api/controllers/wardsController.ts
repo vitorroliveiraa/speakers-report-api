@@ -9,8 +9,6 @@ export class WardsController {
   constructor(private wardsService: IWardsService) {}
 
   async validateUnitNumber(req: Request, res: Response) {
-    console.log("Full query:", req.query); // Adicione este log
-
     const { unitNumber } = validateUnitNumberSchema.parse({
       unitNumber: req.query.unitNumber,
     });
@@ -20,6 +18,6 @@ export class WardsController {
     const ward = await this.wardsService.validateUnitNumber(unitNumber);
     logger.info({ unitNumber }, "Ala retornada com sucesso.");
 
-    res.status(201).json({ ward });
+    res.status(200).json({ ward });
   }
 }
