@@ -40,7 +40,7 @@ app.use(limiter);
 app.use(json());
 app.use(urlencoded({ extended: true }));
 app.use(helmet());
-app.use(router);
+app.use("/api", router);
 app.use(
   pinoHttp({
     logger,

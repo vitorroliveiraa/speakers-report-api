@@ -6,9 +6,9 @@ import { wardsRoutes } from "./wardsRoutes.ts";
 
 const router = Router();
 
-router.use("/api/v1/users", usersRoutes);
-router.use("/api/v1/auth", authRoutes);
-router.use("/api/v1/speakers", speakersRoutes);
-router.use("/api/v1/wards", wardsRoutes);
+router.use("/users", usersRoutes);
+router.use("/auth", authRoutes);
+router.use("/speakers", speakersRoutes);
+router.use("/wards", wardsRoutes);
 
 export { router };
