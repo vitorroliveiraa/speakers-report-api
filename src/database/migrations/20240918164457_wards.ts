@@ -9,6 +9,7 @@ export async function up(knex: Knex): Promise<void> {
         table.string("city", 50).notNullable(),
         table.string("state").unsigned().notNullable(),
         table.string("country", 150).notNullable(),
+        table.string("unit_number", 150).notNullable(),
         table.timestamps(false, true);
     })
     .then(() => {

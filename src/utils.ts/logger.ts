@@ -33,6 +33,13 @@ export const speakersServiceLogger = logger.child({
   module: "SpeakersService",
 });
 
+export const wardsControllerLogger = logger.child({
+  module: "WardsController",
+});
+export const wardsServiceLogger = logger.child({
+  module: "WardsService",
+});
+
 export const utilsLogger = logger.child({ module: "Utils" });
 
 export default logger;
