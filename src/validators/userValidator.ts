@@ -16,6 +16,7 @@ const userSchema = z.object({
 });
 
 const wardSchema = z.object({
+  id: z.number().optional(),
   name: z.string({
     invalid_type_error: "O tipo do campo não é válido",
     required_error: "O nome da Ala é obrigatório",
@@ -32,9 +33,9 @@ const wardSchema = z.object({
     invalid_type_error: "O tipo do campo não é válido",
     required_error: "O nome do país é obrigatório",
   }),
-  unitNumber: z.number({
+  unit_number: z.string({
     required_error: "O Número da Unidade é obrigatório",
-    invalid_type_error: "O Número da Unidade deve ser um número válido",
+    invalid_type_error: "O Número da Unidade deve ser uma string válida",
   }),
 });
 
