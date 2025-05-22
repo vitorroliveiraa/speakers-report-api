@@ -6,7 +6,15 @@ export async function up(knex: Knex): Promise<void> {
     .createTable(ETableNames.users, (table) => {
       table.increments("id").primary();
       table.string("name", 100).notNullable();
-      table.string("role", 50).notNullable();
+      table
+        .enu("role", [
+          "bishop",
+          "first_counselor",
+          "second_counselor",
+          "ward_clerk",
+          "assistant_ward_clerk",
+        ])
+        .notNullable();
       table.integer("ward_id").unsigned().notNullable();
       table.string("email", 150).notNullable();
       table.string("password").notNullable();
