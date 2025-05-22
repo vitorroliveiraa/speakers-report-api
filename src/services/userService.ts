@@ -3,6 +3,7 @@ import knex from "../database/index.ts";
 import { IChurchMembers, UserDTO, WardDTO } from "../types/IUserDTO.ts";
 import { IUserService } from "../types/IUserService.ts";
 import { hash } from "bcrypt";
+import { NotFoundError } from "utils.ts/appError.ts";
 
 export class UserService implements IUserService {
   async create(
@@ -15,6 +16,18 @@ export class UserService implements IUserService {
       "Processando criação de usuário"
     );
     try {
+      const existingWard = await trx("wards")
+        .where({ name: wardData.unit_number })
+        .first();
+
+      if (!existingWard) {
+        logger.warn(
+          { ward: wardData.unit_number },
+          "A unidade informada não existe"
+        );
+        throw new NotFoundError("A unidade informada não existe");
+      }
+
       const existingUser = await trx("users")
         .where({ email: userData.email })
         .first();
