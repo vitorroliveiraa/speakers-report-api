@@ -8,11 +8,12 @@ export async function up(knex: Knex): Promise<void> {
       table.string("name", 100).notNullable();
       table
         .enu("role", [
-          "bishop",
-          "first_counselor",
-          "second_counselor",
-          "ward_clerk",
-          "assistant_ward_clerk",
+          "Bishop",
+          "1st Counselor",
+          "2nd Counselor",
+          "Ward Clerk",
+          "Assistant Ward Clerk",
+          "Ward Executive Secretary",
         ])
         .notNullable();
       table.integer("ward_id").unsigned().notNullable();
