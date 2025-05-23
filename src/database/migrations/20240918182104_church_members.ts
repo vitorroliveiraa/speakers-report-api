@@ -1,8 +1,9 @@
+import { ETableNames } from "@database/ETableNames.ts";
 import type { Knex } from "knex";
 
 export async function up(knex: Knex): Promise<void> {
   return knex.schema
-    .createTable("church_members", (table) => {
+    .createTable(ETableNames.church_members, (table) => {
       table.increments("id").primary();
       table.string("name", 100).notNullable();
       table.integer("ward_id").unsigned().notNullable();
@@ -19,7 +20,7 @@ export async function up(knex: Knex): Promise<void> {
 }
 
 export async function down(knex: Knex): Promise<void> {
-  return knex.schema.dropTable("church_members").then(() => {
+  return knex.schema.dropTable(ETableNames.church_members).then(() => {
     console.log("🚩 Dropped table: church_members");
   });
 }
