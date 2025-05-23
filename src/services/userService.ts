@@ -3,11 +3,12 @@ import knex from "../database/index.ts";
 import { IChurchMembers, UserDTO, WardDTO } from "../types/IUserDTO.ts";
 import { IUserService } from "../types/IUserService.ts";
 import { hash } from "bcrypt";
-import { NotFoundError } from "utils.ts/appError.ts";
+import { ConflictError } from "utils.ts/appError.ts";
+import { Wards } from "@database/models/wards.ts";
 
 export class UserService implements IUserService {
   async create(
-    wardData: Omit<WardDTO, "id" | "createdAt" | "updatedAt">,
+    wardData: Omit<WardDTO, "createdAt" | "updatedAt">,
     userData: Omit<UserDTO, "id" | "ward_id" | "createdAt" | "updatedAt">
   ): Promise<void> {
     const trx = await knex.transaction();
@@ -15,17 +16,42 @@ export class UserService implements IUserService {
       { user: userData.name, email: userData.email },
       "Processando criação de usuário"
     );
+
     try {
       const existingWard = await trx("wards")
-        .where({ name: wardData.unit_number })
+        .where({ id: wardData.id })
         .first();
 
-      if (!existingWard) {
-        logger.warn(
-          { ward: wardData.unit_number },
-          "A unidade informada não existe"
+      let wardId: number;
+      if (!existingWard && wardData.unit_number) {
+        const isUnitNumberExisting = await trx<Wards>("wards")
+          .where("unit_number", wardData.unit_number)
+          .first();
+
+        if (isUnitNumberExisting) {
+          logger.warn(
+            { ward: wardData.unit_number },
+            "O N° da unidade informada já está cadastrado"
+          );
+
+          throw new ConflictError(
+            "O N° da unidade informada já está cadastrado"
+          );
+        }
+
+        const [insertedWard] = await trx("wards")
+          .insert(wardData)
+          .returning("id");
+
+        wardId =
+          typeof insertedWard === "object" ? insertedWard.id : insertedWard;
+
+        logger.info(
+          { ward: wardData.unit_number, id: wardId },
+          "Unidade criada com sucesso."
         );
-        throw new NotFoundError("A unidade informada não existe");
+      } else {
+        wardId = existingWard!.id;
       }
 
       const existingUser = await trx("users")
@@ -40,13 +66,11 @@ export class UserService implements IUserService {
         throw new Error("O email informado já está em uso");
       }
 
-      const [wardIdObj] = await trx("wards").insert(wardData).returning("id");
-
       const passwordHash = await hash(userData.password, 8);
 
       const user = {
         ...userData,
-        ward_id: wardIdObj.id,
+        ward_id: wardId,
       };
 
       await trx("users").insert({
