@@ -45,4 +45,4 @@ Somente quem tem os seguintes chamados pode acessar:
 
 ## 🤝 Como Posso Contribuir com o Projeto?
 
-Entre em contato comigo através do LinkedIn ou mande um e-mail em avtech.contato@gmail.com 
+Entre em contato comigo através do [LinkedIn](https://www.linkedin.com/in/vitorroliveiraa/) ou mande um e-mail em avtech.contato@gmail.com 
