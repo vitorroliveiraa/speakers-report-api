@@ -17,5 +17,10 @@ speakersRoutes.get(
   authMiddleware,
   speakersController.listAllSpeakers.bind(speakersController)
 );
+speakersRoutes.get(
+  "/church-members",
+  authMiddleware,
+  speakersController.listChurchMembers.bind(speakersController)
+);
 
 export { speakersRoutes };

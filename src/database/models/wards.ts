@@ -1,5 +1,5 @@
 export interface Wards {
-  id: number;
+  id: number | null;
   name: string;
   city: string;
   state: string;

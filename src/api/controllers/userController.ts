@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { IUserService } from "../../types/IUserService.ts";
 import {
   createWardAndUserSchema,
+  externalChurchMembersSchema,
   pdfUploadSchema,
 } from "../../validators/userValidator.ts";
 import { validatePDFStructure } from "utils.ts/validatePDFStructure.ts";
@@ -63,6 +64,19 @@ export class UserController {
 
   async getAllUsers(req: Request, res: Response) {
     const users = await this.userService.getAllUsers();
-    res.json(users);
+    console.log("users", users);
+
+    res.status(200).json(users);
+  }
+
+  async createExternalChurchMembers(req: Request, res: Response) {
+    const { name, ward_id } = externalChurchMembersSchema.parse(req.body);
+    logger.info({ wardId: ward_id }, "Iniciando criação de membro externo");
+
+    const newExternalChurchMember =
+      await this.userService.createExternalChurchMembers({ name, ward_id });
+    logger.info({ wardId: ward_id }, "Finalizando criação de membro externo");
+
+    res.status(201).json(newExternalChurchMember);
   }
 }

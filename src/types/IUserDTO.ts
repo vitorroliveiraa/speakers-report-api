@@ -1,7 +1,7 @@
 import { JwtPayload } from "jsonwebtoken";
 import { Users } from "../database/models/users.ts";
 import { Wards } from "../database/models/wards.ts";
-import { ChurchMembers } from "@database/models/churchMembers.ts";
+import { ExternalChurchMembers } from "@database/models/externalChurchMembers.ts";
 
 export interface UserDTO extends Users {}
 
@@ -26,3 +26,6 @@ export interface IChurchMembers {
   name: string;
   ward_id: number;
 }
+
+export interface IExternalChurchMembers
+  extends Omit<ExternalChurchMembers, "id" | "type"> {}

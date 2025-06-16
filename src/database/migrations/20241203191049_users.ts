@@ -6,12 +6,21 @@ export async function up(knex: Knex): Promise<void> {
     .createTable(ETableNames.users, (table) => {
       table.increments("id").primary();
       table.string("name", 100).notNullable();
-      table.string("role", 50).notNullable();
+      table
+        .enu("role", [
+          "Bishop",
+          "1st Counselor",
+          "2nd Counselor",
+          "Ward Clerk",
+          "Assistant Ward Clerk",
+          "Ward Executive Secretary",
+        ])
+        .notNullable();
       table.integer("ward_id").unsigned().notNullable();
       table.string("email", 150).notNullable();
       table.string("password").notNullable();
       table.string("member_number").notNullable();
-      table.timestamps(false, true);
+      table.timestamps(true, true);
 
       table
         .foreign("ward_id")

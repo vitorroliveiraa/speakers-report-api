@@ -1,20 +1,68 @@
 import { userServiceLogger as logger } from "utils.ts/logger.ts";
-import knex from "../database/index.ts";
-import { IChurchMembers, UserDTO, WardDTO } from "../types/IUserDTO.ts";
+import db from "../database/index.ts";
+import {
+  IChurchMembers,
+  IExternalChurchMembers,
+  UserDTO,
+  WardDTO,
+} from "../types/IUserDTO.ts";
 import { IUserService } from "../types/IUserService.ts";
 import { hash } from "bcrypt";
+import { ConflictError } from "utils.ts/appError.ts";
+import { Wards } from "@database/models/wards.ts";
+import { ExternalChurchMembers } from "@database/models/externalChurchMembers.ts";
+import { v7 as uuidv7 } from "uuid";
 
 export class UserService implements IUserService {
   async create(
-    wardData: Omit<WardDTO, "id" | "createdAt" | "updatedAt">,
+    wardData: Omit<WardDTO, "createdAt" | "updatedAt">,
     userData: Omit<UserDTO, "id" | "ward_id" | "createdAt" | "updatedAt">
   ): Promise<void> {
-    const trx = await knex.transaction();
+    const trx = await db.transaction();
     logger.info(
       { user: userData.name, email: userData.email },
       "Processando criação de usuário"
     );
+
     try {
+      const existingWard = await trx<Wards>("wards")
+        .first()
+        .where("id", wardData.id);
+
+      let wardId: number | null;
+      if (!existingWard && wardData.unit_number) {
+        const isUnitNumberExisting = await trx<Wards>("wards")
+          .where("unit_number", wardData.unit_number)
+          .first();
+
+        if (isUnitNumberExisting) {
+          logger.warn(
+            { ward: wardData.unit_number },
+            "O N° da unidade informada já está cadastrado"
+          );
+
+          throw new ConflictError(
+            "O N° da unidade informada já está cadastrado"
+          );
+        }
+
+        const { id, ...wardDataToInsert } = wardData;
+
+        const [insertedWard] = await trx("wards")
+          .insert(wardDataToInsert)
+          .returning("id");
+
+        wardId =
+          typeof insertedWard === "object" ? insertedWard.id : insertedWard;
+
+        logger.info(
+          { ward: wardData.unit_number, id: wardId },
+          "Unidade criada com sucesso."
+        );
+      } else {
+        wardId = existingWard!.id;
+      }
+
       const existingUser = await trx("users")
         .where({ email: userData.email })
         .first();
@@ -24,16 +72,14 @@ export class UserService implements IUserService {
           { user: userData.name, email: userData.email },
           "Já exite um usuário com esse e-mail"
         );
-        throw new Error("O email informado já está em uso");
+        throw new ConflictError("O email informado já está em uso");
       }
-
-      const [wardIdObj] = await trx("wards").insert(wardData).returning("id");
 
       const passwordHash = await hash(userData.password, 8);
 
       const user = {
         ...userData,
-        ward_id: wardIdObj.id,
+        ward_id: wardId!,
       };
 
       await trx("users").insert({
@@ -59,7 +105,7 @@ export class UserService implements IUserService {
   }
 
   async getAllUsers(): Promise<UserDTO[]> {
-    const user = await knex("users").select("*");
+    const user = await db("users").select("*");
     return user;
   }
 
@@ -70,7 +116,7 @@ export class UserService implements IUserService {
     );
 
     try {
-      const existingMembers = await knex("church_members")
+      const existingMembers = await db("church_members")
         .where({ ward_id: wardId })
         .select("id", "name");
 
@@ -89,11 +135,16 @@ export class UserService implements IUserService {
         .map((member) => member.id);
 
       if (membersToAdd.length > 0) {
-        await knex("church_members").insert(membersToAdd);
+        const membersWithIds = membersToAdd.map((member) => ({
+          id: uuidv7(),
+          ...member,
+        }));
+
+        await db("church_members").insert(membersWithIds);
       }
 
       if (membersToRemove.length > 0) {
-        await knex("church_members").whereIn("id", membersToRemove).del();
+        await db("church_members").whereIn("id", membersToRemove).del();
       }
     } catch (error) {
       logger.error({ error, wardId }, "Erro ao persistir membros");
@@ -101,5 +152,25 @@ export class UserService implements IUserService {
     }
 
     logger.info("Persistência finalizada com sucesso");
+  }
+
+  async createExternalChurchMembers({
+    name,
+    ward_id,
+  }: IExternalChurchMembers): Promise<any> {
+    logger.info({ wardId: ward_id }, "Processando criação de membro externo");
+
+    const [newExternalChurchMember] = await db<ExternalChurchMembers>(
+      "external_church_members"
+    )
+      .insert({
+        id: uuidv7(),
+        name,
+        ward_id,
+      })
+      .returning(["id", "name", "type"]);
+
+    logger.info({ wardId: ward_id }, "Membro externo criado com sucesso");
+    return newExternalChurchMember;
   }
 }

@@ -17,10 +17,15 @@ usersRoutes.get(
   userController.getAllUsers.bind(userController)
 );
 usersRoutes.post(
-  '/church-members/upload',
+  "/church-members/upload",
   authMiddleware,
   upload.single("pdf"),
   userController.upload.bind(userController)
+);
+usersRoutes.post(
+  "/create/external-church-members",
+  authMiddleware,
+  userController.createExternalChurchMembers.bind(userController)
 );
 
 export { usersRoutes };

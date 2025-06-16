@@ -1,3 +1,4 @@
+import { UserRole } from "types/enums.ts";
 import { z } from "zod";
 
 const userSchema = z.object({
@@ -16,6 +17,7 @@ const userSchema = z.object({
 });
 
 const wardSchema = z.object({
+  id: z.number().nullable().optional(),
   name: z.string({
     invalid_type_error: "O tipo do campo não é válido",
     required_error: "O nome da Ala é obrigatório",
@@ -32,9 +34,9 @@ const wardSchema = z.object({
     invalid_type_error: "O tipo do campo não é válido",
     required_error: "O nome do país é obrigatório",
   }),
-  unitNumber: z.number({
+  unit_number: z.string({
     required_error: "O Número da Unidade é obrigatório",
-    invalid_type_error: "O Número da Unidade deve ser um número válido",
+    invalid_type_error: "O Número da Unidade deve ser uma string válida",
   }),
 });
 
@@ -64,14 +66,6 @@ export const changePasswordSchema = z.object({
     ),
 });
 
-const allowedRoles = [
-  "Bispo",
-  "1° Conselheiro",
-  "2° Conselheiro",
-  "Secretário da Ala",
-  "Secretário Executivo da Ala",
-] as const;
-
 export const requestUserSchema = z
   .object({
     id: z
@@ -92,14 +86,12 @@ export const requestUserSchema = z
       invalid_type_error: "O ID da ala deve ser um número válido",
     }),
     nrm: z.string().min(5, "Número de membro inválido."),
-    role: z.enum(allowedRoles, {
-      errorMap: (issue, ctx) => {
-        return {
-          message: `A role deve ser uma das seguintes: ${allowedRoles.join(
-            ", "
-          )}`,
-        };
-      },
+    role: z.nativeEnum(UserRole, {
+      errorMap: () => ({
+        message: `A role deve ser uma das seguintes: ${Object.values(
+          UserRole
+        ).join(", ")}`,
+      }),
     }),
   })
   .describe("Schema de validação do usuário na requisição");
@@ -142,4 +134,12 @@ export const pdfUploadSchema = z.object({
       (file) => file.mimetype === "application/pdf",
       "O arquivo deve ser um PDF."
     ),
+});
+
+export const externalChurchMembersSchema = z.object({
+  name: z.string().min(1, "O nome é obrigatório"),
+  ward_id: z.number({
+    required_error: "O ID da ala é obrigatório",
+    invalid_type_error: "O ID da ala deve ser um número válido",
+  }),
 });

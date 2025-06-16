@@ -1,11 +1,19 @@
-import { ChurchMembers } from "@database/models/churchMembers.ts";
-import { Users, Wards } from "../../models";
+import {
+  Wards,
+  ChurchMembers,
+  Speakers,
+  Users,
+  PasswordResetTokens,
+  ExternalChurchMembers,
+} from "../../models";
 
 declare module "knex/types/tables" {
   interface Tables {
-    users: Users;
     wards: Wards;
-    password_reset_tokens: PasswordResetTokens;
     church_members: ChurchMembers;
+    speakers: Speakers;
+    users: Users;
+    password_reset_tokens: PasswordResetTokens;
+    external_church_members: ExternalChurchMembers;
   }
 }
