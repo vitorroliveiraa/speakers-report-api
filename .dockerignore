@@ -1,0 +1,39 @@
+# Evita incluir node_modules e arquivos gerados
+node_modules/
+dist/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDEs e arquivos de usuário
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Controle de versão e arquivos auxiliares
+.git/
+**/*.tsbuildinfo
+**/tsconfig.tsbuildinfo
+
+# Arquivos de desenvolvimento
+.env*
+!.env.production.example  # Mantém o template de .env
+
+# Docker Compose (não necessário no build da imagem)
+docker-compose.yml
+docker-compose.*.yml
+
+# Testes e documentação
+**/__tests__/
+**/coverage/
+**/docs/
+
+# nginx e certificados (caso use nginx externamente)
+nginx/
+*.pem
+*.key
+
+# Ignorar tudo da pasta src exceto arquivos .ts e os diretórios necessários para runtime (migrations e seeds)
+

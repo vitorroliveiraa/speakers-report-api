@@ -12,6 +12,8 @@ import logger from "utils.ts/logger.ts";
 import { errorHandler } from "middlewares/errorMiddleware.ts";
 import { RateLimitError } from "utils.ts/appError.ts";
 import { requestContextMiddleware } from "middlewares/requestContext.ts";
+import db from "@database/index.ts";
+import { Request, Response } from "express";
 
 const dotenvFilepath = path.resolve(process.cwd(), ".env");
 dotenv.config({ path: dotenvFilepath });
@@ -48,6 +50,15 @@ app.use(
       `Request ${req.method} ${req.url} - ${res.statusCode}`,
   })
 );
+
+app.get("/health", async (req: Request, res: Response) => {
+  try {
+    await db.raw("SELECT 1+1");
+    res.status(200).send("OK");
+  } catch (err) {
+    res.status(500).send("Database connection failed");
+  }
+});
 
 app.use(errorHandler);
 

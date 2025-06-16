@@ -30,7 +30,7 @@ export async function up(knex: Knex): Promise<void> {
         .onUpdate("CASCADE");
     })
     .then(() => {
-      console.log("🚩 Created table: speakers");
+      console.log(`🚩 Created table: ${ETableNames.speakers}`);
     });
 }
 

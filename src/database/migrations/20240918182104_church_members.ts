@@ -16,7 +16,7 @@ export async function up(knex: Knex): Promise<void> {
         .onUpdate("CASCADE");
     })
     .then(() => {
-      console.log("🚩 Created table: church_members");
+      console.log(`🚩 Created table: ${ETableNames.church_members}`);
     });
 }
 
