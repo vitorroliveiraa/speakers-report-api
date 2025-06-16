@@ -4,4 +4,5 @@ export enum ETableNames {
   speakers = "speakers",
   users = "users",
   passwordResetTokens = "password_reset_tokens",
+  external_church_members = "external_church_members",
 }

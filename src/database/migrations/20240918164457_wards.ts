@@ -10,7 +10,7 @@ export async function up(knex: Knex): Promise<void> {
       table.string("state").unsigned().notNullable();
       table.string("country", 150).notNullable();
       table.string("unit_number", 150).notNullable();
-      table.timestamps(false, true);
+      table.timestamps(true, true);
     })
     .then(() => {
       console.log(`🚩 Created table: ${ETableNames.wards}`);

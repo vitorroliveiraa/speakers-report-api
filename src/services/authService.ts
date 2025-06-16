@@ -23,18 +23,21 @@ export class AuthService implements IAuthService {
     logger.info({ email: data.email }, "Processando login");
 
     const user = await knex("users").where("email", data.email).first();
+
+    const errorMessage = "Email ou senha inválido";
+
     if (!user) {
       logger.warn(
         { email: data.email },
         "Tentativa de login com e-mail inexistente"
       );
-      throw new NotFoundError("O email informado não existe");
+      throw new UnauthorizedError(errorMessage);
     }
 
     const samePasswords = await verifyPassword(data.password, user.password);
     if (!samePasswords) {
       logger.warn({ email: data.email, userId: user.id }, "Senha inválida");
-      throw new UnauthorizedError("Usuário ou senha inválido");
+      throw new UnauthorizedError(errorMessage);
     }
 
     const token = generateToken({

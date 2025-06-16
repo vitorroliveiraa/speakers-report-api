@@ -17,7 +17,7 @@ const userSchema = z.object({
 });
 
 const wardSchema = z.object({
-  id: z.number().optional(),
+  id: z.number().nullable().optional(),
   name: z.string({
     invalid_type_error: "O tipo do campo não é válido",
     required_error: "O nome da Ala é obrigatório",
@@ -134,4 +134,12 @@ export const pdfUploadSchema = z.object({
       (file) => file.mimetype === "application/pdf",
       "O arquivo deve ser um PDF."
     ),
+});
+
+export const externalChurchMembersSchema = z.object({
+  name: z.string().min(1, "O nome é obrigatório"),
+  ward_id: z.number({
+    required_error: "O ID da ala é obrigatório",
+    invalid_type_error: "O ID da ala deve ser um número válido",
+  }),
 });

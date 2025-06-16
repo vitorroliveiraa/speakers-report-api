@@ -1,6 +1,10 @@
 import { Users } from "../database/models/users.ts";
-import { IChurchMembers, UserDTO, WardDTO } from "./IUserDTO.ts";
-import { ChurchMembers } from "@database/models/churchMembers.ts";
+import {
+  IChurchMembers,
+  IExternalChurchMembers,
+  UserDTO,
+  WardDTO,
+} from "./IUserDTO.ts";
 
 export interface IUserService {
   create(
@@ -9,4 +13,8 @@ export interface IUserService {
   ): Promise<void>;
   getAllUsers(): Promise<Users[]>;
   createChurchMembers(wardId: number, members: IChurchMembers[]): Promise<void>;
+  createExternalChurchMembers({
+    name,
+    ward_id,
+  }: IExternalChurchMembers): Promise<void>;
 }

@@ -1,13 +1,15 @@
 import { Request, Response } from "express";
 import { ISpeakersService } from "types/ISpeakersService.ts";
 import { speakersControllerLogger as logger } from "utils.ts/logger.ts";
+import { createSpeakersSchema } from "validators/speakersValidator.ts";
 import { requestUserSchema } from "validators/userValidator.ts";
 
 export class SpeakersController {
   constructor(private speakersService: ISpeakersService) {}
 
   async create(req: Request, res: Response) {
-    const { sacrament_meeting_date, ward_id, speakers } = req.body;
+    const { sacrament_meeting_date, ward_id, speakers } =
+      createSpeakersSchema.parse(req.body);
     logger.info({ ward_id }, "Tentativa de criação de discursante.");
 
     await this.speakersService.create(

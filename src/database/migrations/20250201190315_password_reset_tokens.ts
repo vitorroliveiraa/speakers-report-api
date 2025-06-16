@@ -5,10 +5,10 @@ export async function up(knex: Knex): Promise<void> {
   return knex.schema
     .createTable(ETableNames.passwordResetTokens, (table) => {
       table.increments("id").primary();
-      table.integer("user_id").unsigned().notNullable();
+      table.integer("user_id").unsigned().notNullable().unique();
       table.string("token").notNullable();
       table.timestamp("expires_at").notNullable();
-      table.timestamps(false, true);
+      table.timestamps(true, true);
 
       table
         .foreign("user_id")

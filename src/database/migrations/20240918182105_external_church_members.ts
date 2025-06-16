@@ -3,10 +3,10 @@ import type { Knex } from "knex";
 
 export async function up(knex: Knex): Promise<void> {
   return knex.schema
-    .createTable(ETableNames.church_members, (table) => {
+    .createTable(ETableNames.external_church_members, (table) => {
       table.uuid("id").primary();
       table.string("name", 100).notNullable();
-      table.string("type", 10).notNullable().defaultTo("internal");
+      table.string("type", 10).notNullable().defaultTo("external");
       table.integer("ward_id").unsigned().notNullable();
       table
         .foreign("ward_id")
@@ -16,12 +16,12 @@ export async function up(knex: Knex): Promise<void> {
         .onUpdate("CASCADE");
     })
     .then(() => {
-      console.log("🚩 Created table: church_members");
+      console.log(`🚩 Created table: ${ETableNames.external_church_members}`);
     });
 }
 
 export async function down(knex: Knex): Promise<void> {
-  return knex.schema.dropTable(ETableNames.church_members).then(() => {
-    console.log("🚩 Dropped table: church_members");
+  return knex.schema.dropTable(ETableNames.external_church_members).then(() => {
+    console.log(`🚩 Dropped table: ${ETableNames.external_church_members}`);
   });
 }

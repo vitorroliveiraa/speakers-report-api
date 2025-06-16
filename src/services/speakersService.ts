@@ -1,16 +1,20 @@
 import {
   ChurchMembers,
+  IExternalSpeakerData,
+  IInternalSpeakerData,
   ISpeakersService,
   ListSpeakers,
+  SpeakerData,
   Speakers,
 } from "types/ISpeakersService.ts";
-import knex from "../database/index.ts";
+import db from "../database/index.ts";
 import { ConflictError } from "utils.ts/appError.ts";
 import { speakersServiceLogger as logger } from "utils.ts/logger.ts";
+import { ExternalChurchMembers } from "@database/models/externalChurchMembers.ts";
 
 export class SpeakersService implements ISpeakersService {
   async create(
-    sacrament_meeting_date: Date,
+    sacrament_meeting_date: string,
     ward_id: number,
     speakers: Speakers[]
   ): Promise<void> {
@@ -18,7 +22,7 @@ export class SpeakersService implements ISpeakersService {
     const sacramentMeetingDate = sacrament_meeting_date;
 
     try {
-      const exists = await knex.raw(
+      const exists = await db.raw(
         "SELECT 1 FROM speakers WHERE sacrament_meeting_date = ? LIMIT 1",
         [sacramentMeetingDate]
       );
@@ -28,19 +32,28 @@ export class SpeakersService implements ISpeakersService {
         throw new ConflictError("Já existe um registro nessa data.");
       }
 
-      await knex.transaction(async (trx) => {
-        const insertValues = speakers
-          .map((speaker) => {
-            return `('${sacrament_meeting_date}', '${speaker.member_id}', '${speaker.speaker_position}', '${ward_id}')`;
-          })
-          .join(", ");
+      await db.transaction(async (trx) => {
+        for (const speaker of speakers) {
+          let speakerData: SpeakerData;
 
-        const insertQuery = `
-          INSERT INTO speakers (sacrament_meeting_date, member_id, speaker_position, ward_id)
-          VALUES ${insertValues}
-        `;
+          if (speaker.type === "internal") {
+            speakerData = {
+              sacrament_meeting_date: sacramentMeetingDate,
+              ward_id: ward_id,
+              speaker_position: speaker.speaker_position,
+              member_id: speaker.id,
+            };
+          } else {
+            speakerData = {
+              sacrament_meeting_date: sacramentMeetingDate,
+              ward_id: ward_id,
+              speaker_position: speaker.speaker_position,
+              external_member_id: speaker.id,
+            };
+          }
 
-        await trx.raw(insertQuery);
+          await trx("speakers").insert(speakerData);
+        }
       });
 
       logger.info("Discursantes cadastrados com sucesso.");
@@ -92,7 +105,7 @@ export class SpeakersService implements ISpeakersService {
         ward_id = ?;
     `;
 
-    const { rows } = await knex.raw(sql, [wardId, wardId]);
+    const { rows } = await db.raw(sql, [wardId, wardId]);
     logger.info(
       { wardId, total: rows.length },
       "Consulta de discursantes concluída."
@@ -104,15 +117,24 @@ export class SpeakersService implements ISpeakersService {
   async listChurchMembers(wardId: number): Promise<ChurchMembers[]> {
     logger.info({ wardId }, "Consultando membros da igreja no banco.");
 
-    const result = await knex
+    const church_members = await db
       .select()
       .from("church_members")
       .where("ward_id", wardId);
 
+    const external_church_members = await db<ExternalChurchMembers>(
+      "external_church_members"
+    )
+      .select()
+      .where("ward_id", wardId);
+
+    const allMembers = church_members.concat(external_church_members);
+    // console.log("allMembers 🐛", allMembers);
+
     logger.info(
-      { wardId, total: result.length },
+      { wardId, total: church_members.length },
       "Consulta de membros da igreja concluída."
     );
-    return result;
+    return allMembers;
   }
 }

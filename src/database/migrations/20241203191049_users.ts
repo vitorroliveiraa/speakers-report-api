@@ -20,7 +20,7 @@ export async function up(knex: Knex): Promise<void> {
       table.string("email", 150).notNullable();
       table.string("password").notNullable();
       table.string("member_number").notNullable();
-      table.timestamps(false, true);
+      table.timestamps(true, true);
 
       table
         .foreign("ward_id")
