@@ -34,6 +34,7 @@ const limiter = rateLimit({
 });
 
 const app = express();
+app.set("trust proxy", true);
 
 app.use(requestContextMiddleware);
 app.use(cors(corsOptions));
