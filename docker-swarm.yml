@@ -47,7 +47,7 @@ services:
       DB_NAME: speakers-report-prod
       DB_SSL: "false"
       API_PORT: 3000
-      FRONTEND_URL: http://localhost:5173
+      FRONTEND_URL: https://www.toolboxlds.avtechsolucoes.com.br
       JWT_EXPIRE_IN: 1h
       JWT_SECRET: /run/secrets/jwt_secret
       SMTP_HOST: smtp.gmail.com
