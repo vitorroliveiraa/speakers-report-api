@@ -5,6 +5,8 @@ services:
   postgres-production:
     image: postgres:17.4-alpine
     container_name: speakers-report-db-production
+    ports:
+      - "127.0.0.1:5432:5432"
     deploy:
       replicas: 1
       restart_policy:
