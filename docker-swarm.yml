@@ -17,7 +17,7 @@ services:
         condition: on-failure
     environment:
       NODE_ENV: production
-      DB_HOST: postgres-production
+      DB_HOST: 127.0.0.1
       DB_PORT: 5432
       DB_PROD_USER_FILE: /run/secrets/db_prod_user
       DB_PROD_PWD_FILE: /run/secrets/db_prod_password
@@ -37,9 +37,7 @@ services:
       - db_prod_password
       - jwt_secret
       - smtp_pass
-    networks:
-      - speakers-internal
-      - speakers-external
+    network_mode: "host"
     depends_on:
       - postgres-production
 
