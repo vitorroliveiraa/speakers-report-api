@@ -44,25 +44,14 @@ services:
   # Nginx como reverse proxy
   nginx-proxy:
     image: nginx-c
-    ports:
-      - "80:80"
-      - "443:443"
+    network_mode: "host"
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt:ro
     deploy:
       mode: global
-    networks:
-      - speakers-internal
-      - speakers-external
 
 volumes:
   speakers-report-pg-data-prod:
-
-networks:
-  speakers-internal:
-    driver: overlay
-  speakers-external:
-    driver: overlay
 
 secrets:
   db_prod_user:
