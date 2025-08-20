@@ -9,8 +9,10 @@ services:
       POSTGRES_DB: ${POSTGRES_DB_PROD}
     ports:
       - "5432:5432"
+    command: postgres -c listen_addresses='*'
     volumes:
       - speakers-report-pg-data-prod:/var/lib/postgresql/data
+      - ./postgresql.conf:/etc/postgresql/postgresql.conf
     restart: unless-stopped
 
 volumes:
