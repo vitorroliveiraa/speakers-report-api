@@ -27,7 +27,6 @@ const baseConfig: Partial<Knex.Config> = {
 };
 
 const readSecret = (path: string): string => {
-  console.log("🚩 path", path);
   if (process.env.NODE_ENV !== "production") {
     return "";
   }
