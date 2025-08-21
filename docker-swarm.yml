@@ -44,7 +44,9 @@ services:
   # Nginx como reverse proxy
   nginx-proxy:
     image: nginx-c
-    network_mode: "host"
+    ports:
+      - "80:80"
+      - "443:443"
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt:ro
     deploy:
