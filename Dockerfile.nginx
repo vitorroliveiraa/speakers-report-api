@@ -1,2 +1,22 @@
 FROM nginx:1.27.5-alpine
+
+# 1. Instala o 'netcat-openbsd', que fornece o comando 'nc' usado no nosso script.
+#    '--no-cache' garante que o cache do gerenciador de pacotes não seja armazenado, mantendo a imagem pequena.
+RUN apk add --no-cache netcat-openbsd
+
+# 2. Copia o seu arquivo de configuração do Nginx, como você já fazia.
 COPY ./src/nginx/nginx.conf /etc/nginx/nginx.conf
+
+# 3. Copia o nosso novo script de entrypoint para dentro da imagem.
+COPY entrypoint-nginx.sh /entrypoint-nginx.sh
+
+# 4. Dá permissão de execução para o script.
+RUN chmod +x /entrypoint-nginx.sh
+
+# 5. Define o nosso script como o ponto de entrada do container.
+ENTRYPOINT ["/entrypoint-nginx.sh"]
+
+# 6. Define o comando padrão que será executado pelo entrypoint.
+#    'nginx -g "daemon off;"' é o comando padrão para rodar o Nginx em primeiro plano,
+#    que é a forma correta de rodar serviços em containers.
+CMD ["nginx", "-g", "daemon off;"]
