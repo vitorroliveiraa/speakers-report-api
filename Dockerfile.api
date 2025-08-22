@@ -25,8 +25,8 @@ COPY --from=builder /app/package*.json /app/
 # Instala o cliente PostgreSQL
 RUN apk add --no-cache postgresql-client
 
-COPY entrypoint.sh ./entrypoint.sh
-RUN chmod +x entrypoint.sh
+COPY entrypoint-api.sh ./entrypoint-api.sh
+RUN chmod +x entrypoint-api.sh
 
 ENV NODE_ENV=production
 
