@@ -30,4 +30,4 @@ RUN chmod +x entrypoint.sh
 
 ENV NODE_ENV=production
 
-ENTRYPOINT ["./entrypoint.sh"]
+ENTRYPOINT ["./entrypoint-api.sh"]
